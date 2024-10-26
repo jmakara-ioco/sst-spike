@@ -1,0 +1,85 @@
+﻿@implements IDisposable
+
+<a href="#" class="@Selected @Current" style="@BorderCss @BackgroundColorCSS" @onclick:preventDefault @onclick="@(() => Control.SetValue(Value))" @onmouseover="@(() => Control.SetHover(Value))" @onmouseout="@(() => Control.SetHover(null))" data-rating-value="@Value" data-rating-text="@TextValue">@DisplayText</a>
+
+@code {
+    [CascadingParameter]
+    public VezaVIRatingControl Control { get; set; }
+    [Parameter]
+    public int Value { get; set; }
+    [Parameter]
+    public string TextValue { get; set; }
+
+    private string Current
+    {
+        get
+        {
+            return (Control.Value == Value) ? "br-current" : "";
+        }
+    }
+
+    private bool IsSelected
+    {
+        get
+        {
+            if (Control.HoverValue != null)
+            {
+                return (Control.HoverValue >= Value);
+            }
+            else
+            {
+                if (Control.Value != null)
+                {
+                    return (Control.Value >= Value);
+                }
+                else
+                    return false;
+            }
+        }
+    }
+
+    private string Selected
+    {
+        get
+        {
+            return IsSelected ? "br-selected" : "";
+        }
+    }
+
+    private string BackgroundColorCSS
+    {
+        get
+        {
+            return Control.DisplayType == RatingControlDisplayType.Blocks ? "background-color: white;" : (IsSelected ? $"background-color: {Control.ColorHex};" : $"background-color: {Control.ColorHex}85;");
+        }
+    }
+
+    private string DisplayText
+    {
+        get
+        {
+            return (Control.DisplayType == RatingControlDisplayType.Pill) ? TextValue : ((Control.DisplayType == RatingControlDisplayType.TextRating || Control.DisplayType == RatingControlDisplayType.HorizontalBar)  ? "" : Value.ToString());
+        }
+    }
+
+    private string BorderCss
+    {
+        get
+        {
+            return Control.DisplayType == RatingControlDisplayType.Blocks ?  (IsSelected ? $"border-color: {Control.ColorHex}; color: {Control.ColorHex};" : $"border-color: {Control.ColorHex}85; color: {Control.ColorHex}85;") : "";
+        }
+    }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        Control.AddValue(this);
+    }
+
+    public void Dispose()
+    {
+        Control.RemoveValue(this);
+    }
+}

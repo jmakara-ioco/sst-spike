@@ -1,0 +1,28 @@
+﻿@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <a>Tenant: @Tenant</a>
+        <a href="myprofile">Hello, @context.User.Identity.Name!</a>
+        <button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>
+    </Authorized>
+    <NotAuthorized>
+        <a>Tenant: @Tenant</a>
+        <a href="/register">Register</a>
+        <a href="/login">Log in</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code{
+    private async Task BeginSignOut(MouseEventArgs args)
+    {
+        Navigation.NavigateTo("/logout");
+    }
+
+    private string Tenant = string.Empty;
+    protected async override Task OnInitializedAsync()
+    {
+        Navigation.TryGetQueryString<string>("Tenant", out Tenant);
+    }
+
+}

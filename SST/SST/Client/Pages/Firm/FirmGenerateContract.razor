@@ -1,0 +1,43 @@
+﻿@page "/firmgeneratecontract"
+@namespace SST.Client
+@inject IVezaDataService<ContractTransaction> ContractTypeService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="card">
+    <div class="card-body">
+        <h1>Select a tile to Start with the contract generation.</h1>
+        <div class="vi-grid-tiles">
+            @foreach (ContractTransaction contractTransaction in ContractTransactions)
+            {
+                <ContractTile ID="@contractTransaction.ID" Caption="@contractTransaction.Name" Base64Background="@contractTransaction.Base64Background" Information="@contractTransaction.Information" OnClick="GoToQuestion" />
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    public void GoToQuestion(TileClickEvent e)
+    {
+        NavigationManager.NavigateTo($"/startquestion/{e.TileID}");
+    }
+
+    public List<ContractTransaction> ContractTransactions = new List<ContractTransaction>();
+
+    IList<VezaVIGridFilter> filters;
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var firmID = user.Claims.FirstOrDefault(x => x.Type == "CompanyID");
+        filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = firmID.Value.ToString(), Equals = true },
+            new VezaVIGridFilter() { Field = "ShowOnGenerateContracts", Value = "true", Equals = true },
+            new VezaVIGridFilter() { Field = "IsActive", Value = "true".ToString(), Equals = true }
+        };
+        var pagedContractTypes = await ContractTypeService.GetAllAsync("Name", filters);
+        ContractTransactions = pagedContractTypes.Items;
+        StateHasChanged();
+    }
+}

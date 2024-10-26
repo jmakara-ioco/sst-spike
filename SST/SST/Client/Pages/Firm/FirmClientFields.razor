@@ -1,0 +1,70 @@
+﻿@page "/firmclientfields"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = RoleConstants.FirmAdministrator)]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@namespace SST.Client
+
+<div class="card">
+    <div class="card-body">
+        <MaintenanceGrid TItem="CustomerDataField" Description="Customer Fields" DefaultPageSize="10" GridFilter="filters" OnModalSubmit="OnClose">
+            <Columns>
+                <MaintenanceGridColumn Caption="Field Name" PropertyName="FieldName" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Type Of Field" PropertyName="TypeOfField" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Required" PropertyName="Required" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Null Text" PropertyName="NullText" AllowSort="true" />
+            </Columns>
+            <ModalContent Context="item">
+                <div class="form-group">
+                    <label for="FieldName">Field Name</label>
+                    <InputText Id="FieldName" Class="form-control" @bind-Value="item.FieldName" />
+                    <ValidationMessage For="@(() => item.FieldName)" />
+                </div>
+                <div class="form-group">
+                    <label for="TypeOfField">Type of Field</label>
+                    <select Id="TypeOfField" class="form-control" @bind="item.TypeOfField">
+                        @foreach (object item in Enum.GetValues(typeof(DataFieldType)))
+                        {
+                            <option value="@item.ToString()">@item.ToString()</option>
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => item.TypeOfField)" />
+                </div>
+                <div class="form-group">
+                    <label for="Required">Required</label>
+                    <label class="switch">
+                        <InputCheckbox id="Required" Class="form-control" @bind-Value="item.Required"></InputCheckbox>
+                        <span class="switch-slider round"></span>
+                    </label>
+                    <ValidationMessage For="@(() => item.Required)" />
+                </div>
+                <div class="form-group">
+                    <label for="NullText">Null Text</label>
+                    <InputText Id="NullText" Class="form-control" @bind-Value="item.NullText" />
+                    <ValidationMessage For="@(() => item.NullText)" />
+                </div>
+            </ModalContent>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code
+{
+    Guid firmID;
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        firmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+        filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = firmID.ToString(), Equals = true }
+        };
+        StateHasChanged();
+    }
+
+    IList<VezaVIGridFilter> filters;
+
+    private async Task OnClose(VezaModalSubmitEventArgs<CustomerDataField> args)
+    {
+        args.Item.FirmID = firmID;
+        args.AllowClose = true;
+    }
+}

@@ -1,0 +1,65 @@
+﻿<CascadingValue Value="this">
+    <div class="vi-collapse-control">
+        <div class="@PanelClass" @onclick="Toggle">
+            <h1 class="@FontClass"><span class="vi-collapse-control-toggle vi-skill-review-collapse-icon vi-skill-review-icon @(_isOpen ? "vi-skill-review-minus" : "vi-skill-review-plus")"></span>@Caption @CheckIcon</h1>
+        </div>
+    </div>
+    @if (_isOpen)
+    {
+        @ChildContent
+    }
+</CascadingValue>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public RenderFragment CheckIcon { get; set; }
+    [Parameter]
+    public bool IsOpen { get; set; } = true;
+    public bool _isOpen { get; set; }
+    public string UserIcon { get; set; }
+    [Parameter]
+    public string Caption { get; set; }
+    [Parameter]
+    public string ColorCssClas { get; set; } = "vi-collapse-control-default";
+    [Parameter]
+    public string FontClass { get; set; } = "vi-collapse-font-default";
+
+
+    private List<VezaVICollapsePanel> Panels = new List<VezaVICollapsePanel>();
+
+    public void AddPanel(VezaVICollapsePanel tab)
+    {
+        Panels.Add(tab);
+        StateHasChanged();
+    }
+
+    public void RemovePanel(VezaVICollapsePanel tab)
+    {
+        Panels.Remove(tab);
+        StateHasChanged();
+    }
+
+    public string PanelClass
+    {
+        get
+        {
+            string css = $"vi-collapse-control-header {ColorCssClas}";
+            return css;
+        }
+    }
+
+    private void Toggle()
+    {
+        _isOpen = !_isOpen;
+        StateHasChanged();
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        _isOpen = IsOpen;
+    }
+}
+

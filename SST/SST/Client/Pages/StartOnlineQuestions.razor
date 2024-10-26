@@ -1,0 +1,60 @@
+﻿@page "/startstorequestion/{TransactionID:guid}"
+@layout EmptyLayout
+@inject NavigationManager NavigationManager
+@inject IQuestionProcessService QuestionProcessService
+@inject ILocalStorageService LocalStorage
+@inject IVezaDataService<Customer> CustomerService
+@inject ITenantHelperService TenantHelperService
+
+    <div class="content">
+        <div class="card">
+            <EditForm Model="simulation" OnValidSubmit="SaveAndNext">
+                <DataAnnotationsValidator />
+                <ValidationSummary/>
+                <div class="card-body">
+                    <h5>Enter your details below</h5>
+                    <div class="form-group">
+                        <label for="Email">Email</label>
+                        <InputText Id="Email" Class="form-control" @bind-Value="simulation.StoreCustomer.Email"></InputText>
+                        <ValidationMessage For="@(() => simulation.CustomerID)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="FirstName">First Name</label>
+                        <InputText Id="FirstName" Class="form-control" @bind-Value="simulation.StoreCustomer.FirstName" />
+                    </div>
+                    <div class="form-group">
+                        <label for="LastName">Last Name</label>
+                        <InputText Id="LastName" Class="form-control" @bind-Value="simulation.StoreCustomer.LastName"></InputText>
+                    </div>
+                    <i>Your privacy is important to us. We will only store your information once you complete the transaction and only the information needed to send your contract will be stored.</i>
+                    <button type="submit" class="btn btn-primary">Next</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    @code {
+        QuestionSimulation simulation = new QuestionSimulation();
+
+        private Guid _transactionID;
+        [Parameter]
+        public Guid TransactionID
+        {
+            get
+            {
+                return _transactionID;
+            }
+            set
+            {
+                _transactionID = value;
+            }
+        }
+
+
+        private async void SaveAndNext()
+        {
+            await LocalStorage.SetItemAsync<QuestionSimulation>("QuestionSimulation", simulation);
+            NavigationManager.NavigateTo($"/answerstorequestion/{TransactionID}");
+        }
+
+    }

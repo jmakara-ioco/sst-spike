@@ -1,0 +1,60 @@
+﻿@page "/firmcontracthistory"
+@inject NavigationManager NavigationManager
+@inject IContractHistoryService ContractHistoryService
+@inject IVezaDataService<Customer> CustomerService
+@inject IVezaDataService<ApplicationUser> UserService
+@inject IVezaDataService<SST.Shared.ContractHistory> ContractHistoryStandardService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AuthenticationStateProvider Provider
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = ScreenRoles)]
+
+<div class="card">
+    <div class="card-body">
+        <MaintenanceGrid ShowAddButton="false" TItem="SST.Shared.ContractHistory" Caption="Contract History" Description="History" GridFilter="filters" DefaultPageSize="10" ShowDeleteButton="false" EditButtonCaption="View Contract" EditUrl="contractsummary">
+            <Columns>
+                <MaintenanceGridColumn Caption="Created By" PropertyName="UserID" AllowSort="true">
+                    <Template Context="item">
+                        <td>@users.FirstOrDefault(x => x.Id == item.UserID)?.UserName</td>
+                    </Template>
+                </MaintenanceGridColumn>
+                <MaintenanceGridColumn Caption="Customer" PropertyName="CustomerID" AllowSort="true">
+                    <Template Context="item">
+                        <td>@customers.FirstOrDefault(x => x.ID == item.CustomerID)?.CompanyName</td>
+                    </Template>
+                </MaintenanceGridColumn>
+                <MaintenanceGridColumn Caption="Date Created" PropertyName="DateCreated" AllowSort="true" />
+            </Columns>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code {
+    public const string ScreenRoles = RoleConstants.FirmAdministrator + "," + RoleConstants.FirmEmployee;
+    IList<VezaVIGridFilter> filters;
+    List<ApplicationUser> users = new List<ApplicationUser>();
+    List<Customer> customers = new List<Customer>();
+
+    List<SST.Shared.ContractHistory> contractHistories = new List<SST.Shared.ContractHistory>();
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        var state = await Provider.GetAuthenticationStateAsync();
+        if (state.User != null)
+        {
+            if (state.User.HasClaim(x => x.Type == "CompanyID"))
+            {
+                filters = new List<VezaVIGridFilter>() {
+                    new VezaVIGridFilter() { Field = "FirmID", Value = state.User.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value, Equals = true }
+                };
+            }
+        }
+
+        var pagedUsers = await UserService.GetAllAsync("ID");
+        users = pagedUsers.Items;
+
+        var pagedCustomers = await CustomerService.GetAllAsync("ID");
+        customers = pagedCustomers.Items;
+
+        StateHasChanged();
+    }
+}

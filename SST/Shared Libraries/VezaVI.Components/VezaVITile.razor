@@ -1,0 +1,39 @@
+﻿@implements IDisposable
+    @*@if (TabControl.IsActiveTab(this))
+    {*@
+    <article @onclick="OnClick" class="@TabStyle">
+        @ChildContent
+    </article>
+    @*}*@
+
+    @code {
+        [Parameter]
+        public RenderFragment ChildContent { get; set; }
+        [CascadingParameter]
+        public VezaVITileControl TileControl { get; set; }
+        [Parameter]
+        public string CssClass { get; set; }
+        [Parameter]
+        public int Columns { get; set; } = 1;
+        [Parameter]
+        public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+        protected async override Task OnInitializedAsync()
+        {
+            TileControl.AddTile(this);
+        }
+
+        public void Dispose()
+        {
+            TileControl.RemoveTile(this);
+        }
+
+        //vi-grid-col
+        private string TabStyle
+        {
+            get
+            {
+                return $"{CssClass} vi-grid-col-{Columns}";
+            }
+        }
+    }

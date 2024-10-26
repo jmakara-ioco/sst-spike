@@ -1,0 +1,178 @@
+﻿@page "/firmcontractentityclause"
+@page "/firmcontractentityclause/{contractentityclauseid:guid}"
+@inject IVezaDataService<ContractTransactionEntityClause> ContractClauseService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IVezaDataService<ContractTransactionEntityDataField> ContractTransactionDataFieldService
+@inject IVezaDataService<FirmStyling> FirmStylingService
+
+@inject IJSRuntime JS
+@namespace SST.Client
+
+
+@((MarkupString)Style)
+
+<div class="card">
+    @if (Errors.Count() > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var error in Errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+<div class="card-body">
+    <VezaVITabControl>
+        <VezaVITab Caption="Contract Clause Info">
+            <EditForm Model="ContractClause" OnValidSubmit="SaveContractClause" Context="item">
+                <div class="form-group">
+                    <label for="Code">Code</label>
+                    <InputText Id="Code" Class="form-control" @bind-Value="ContractClause.Code" />
+                    <ValidationMessage For="@(() => ContractClause.Code)" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </EditForm>
+        </VezaVITab>
+        @if (ContractEntityClauseID != Guid.Empty)
+        {
+            <VezaVITab Caption="Clause Designer" LoadOnFocus="false">
+                <VezaRichEditor OnSave="OnSave">
+                    <Toolbar1>
+                        @if (ContractTransactionID != Guid.Empty)
+                        {
+                            <select onchange="addEntityUDF(this[this.selectedIndex].text, this[this.selectedIndex].value);this.selectedIndex=0;">
+                                <option class="heading" selected>- User Field -</option>
+                                @foreach (var udf in userFields)
+                                {
+                                    <option value="@udf.ID.ToString().ToLower()">@udf.FieldName</option>
+                                }
+                            </select>
+                        }
+                    </Toolbar1>
+                </VezaRichEditor>
+            </VezaVITab>
+        }
+    </VezaVITabControl>
+    @if (ContractTransactionID != Guid.Empty)
+    {
+        <div class="form-group">
+            <button class="btn btn-primary" @onclick="Back">Back To Group Data Fields</button>
+        </div>
+    }
+</div>
+</div>
+
+@code {
+    private MarkupString Style { get; set; }
+
+    private Guid _contractEntityClauseID = Guid.Empty;
+    [Parameter]
+    public Guid ContractEntityClauseID
+    {
+        get
+        {
+            return _contractEntityClauseID;
+        }
+        set
+        {
+            _contractEntityClauseID = value;
+        }
+    }
+
+    private Guid ContractTransactionID { get; set; } = Guid.Empty;
+
+    private ContractTransactionEntityClause ContractClause { get; set; } = new ContractTransactionEntityClause();
+    public IEnumerable<string> Errors { get; set; } = new List<string>();
+    public List<ContractTransactionEntityDataField> userFields = new List<ContractTransactionEntityDataField>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var firmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+
+        var PagedFirmStyling = await FirmStylingService.GetAllAsync("ID", new List<VezaVIGridFilter>() {
+                    new VezaVIGridFilter() { Field = "FirmID", Value = firmID.ToString(), Equals = true }
+                });
+        if (PagedFirmStyling.Items.Count > 0)
+        {
+            Style = (MarkupString)PagedFirmStyling.Items[0].GenerateStyleSheet();
+        }
+
+        ContractClause = await ContractClauseService.GetAsync(ContractEntityClauseID);
+
+        string contractTransactionID = string.Empty;
+        if (NavigationManager.Uri.Contains("ContractTransactionEntityID"))
+        {
+            NavigationManager.TryGetQueryString<string>("ContractTransactionEntityID", out contractTransactionID);
+            if (contractTransactionID != string.Empty)
+                ContractTransactionID = new Guid(contractTransactionID);
+            
+            var udfs = await ContractTransactionDataFieldService.GetAllAsync("FieldName", new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "ContractTransactionEntityID", Value = contractTransactionID.ToString(), Equals = true }
+
+            });
+            userFields = udfs.Items;
+        }
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (ContractEntityClauseID != Guid.Empty)
+        {
+            string value = ContractClause.ClauseText;
+            value = DocumentParser.ParseToDisplay(value, new List<ContractTransactionDataField>(), new List<ContractClause>(), userFields, new List<EditorEntityClause>());
+            await JS.InvokeAsync<string>("setDocText", value);
+        }
+    }
+
+    public async Task SaveContractClause()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var firmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+        ContractClause.ContractTransactionEntityID = ContractTransactionID;
+        Errors = new List<string>();
+        VezaAPISubmitResult result;
+        if (ContractEntityClauseID == Guid.Empty)
+        {
+            result = await ContractClauseService.AddAsync(ContractClause);
+        }
+        else
+            result = await ContractClauseService.UpdateAsync(ContractClause);
+        if (!result.Successful)
+        {
+            Errors = result.Errors;
+        }
+        else if (ContractEntityClauseID == Guid.Empty)
+        {
+            NavigationManager.NavigateTo($"/firmcontracttransactionentity/{ContractTransactionID}");
+        }
+        StateHasChanged();
+    }
+
+    IList<IDragableElement> DocumentToolbarItems = new List<IDragableElement>() {
+        new DocumentHeader() { State = DocumentBuilderElementListType.Toolbar },
+        new DocumentParagraph() { State = DocumentBuilderElementListType.Toolbar },
+        new DocumentClause() { State = DocumentBuilderElementListType.Toolbar },
+        new DocumentUserField() { State = DocumentBuilderElementListType.Toolbar },
+        new DocumentSignature() { State = DocumentBuilderElementListType.Toolbar },
+        new DocumentList() { State = DocumentBuilderElementListType.Toolbar }
+    };
+
+    IList<IDragableElement> DocumentElements = new List<IDragableElement>();
+
+    public async void OnSave(string value)
+    {
+        ContractClause.ClauseText = DocumentParser.ParseToSave(value, new List<ContractTransactionDataField>(), new List<ContractClause>(), userFields, new List<EditorEntityClause>());
+        await SaveContractClause();
+    }
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo($"/firmcontracttransactionentity/{ContractTransactionID}");
+    }
+}

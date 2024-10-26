@@ -1,0 +1,69 @@
+﻿@page "/startquestion/{TransactionID:guid}"
+@inject NavigationManager NavigationManager
+@inject IQuestionProcessService QuestionProcessService
+@inject ILocalStorageService LocalStorage
+@inject IVezaDataService<Customer> CustomerService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="card">
+    <EditForm Model="simulation" OnValidSubmit="SaveAndNext">
+        <DataAnnotationsValidator />
+        <div class="card-body">
+            <h5>Generate Contract</h5>
+            <div class="form-group">
+                <label for="PlatformID">Customer</label>
+                <select Id="PlatformID" class="form-control" @bind="simulation.CustomerID">
+                    <option value="">Select a customer</option>
+                    @foreach (var customer in customers)
+                    {
+                        <option value="@customer.ID.ToString()">@customer.FirstName @customer.LastName</option>
+                    }
+                </select>
+                <ValidationMessage For="@(() => simulation.CustomerID)" />
+            </div>
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    QuestionSimulation simulation = new QuestionSimulation();
+
+    private Guid _transactionID;
+    [Parameter]
+    public Guid TransactionID
+    {
+        get
+        {
+            return _transactionID;
+        }
+        set
+        {
+            _transactionID = value;
+        }
+    }
+
+    public List<Customer> customers = new List<Customer>();
+    protected async override Task OnInitializedAsync()
+    {
+        /*Check Customer ID*/
+        //Save and Next if Customer ID != null
+
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var firmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+        var filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = firmID.ToString(), Equals = true }
+        };
+
+        var pagedCustomers = await CustomerService.GetAllAsync("FirstName", filters);
+        customers = pagedCustomers.Items;
+    }
+
+    private async void SaveAndNext()
+    {
+        await LocalStorage.SetItemAsync<QuestionSimulation>("QuestionSimulation", simulation);
+        NavigationManager.NavigateTo($"/answerquestion/{TransactionID}");
+    }
+
+}

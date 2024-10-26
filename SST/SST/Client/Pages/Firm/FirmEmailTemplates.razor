@@ -1,0 +1,42 @@
+﻿@page "/firmemailtemplates"
+@attribute [Authorize]
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorage
+@namespace SST.Client
+
+<div class="card">
+    <div class="card-body">
+        <h5>Email Templates</h5>
+        <TemplatedList Loader="@LoadTemplates" ListGroupClass="orders-list">
+            <Loading>Loading...</Loading>
+            <Empty>
+                <h2>No email templates found</h2>
+            </Empty>
+            <Item Context="item">
+                <div class="col">
+                    <h5>@item.Name</h5>
+                    <a href="firmemailtemplate/@item.ID" class="btn btn-primary">
+                        Design
+                    </a>
+                </div>
+            </Item>
+        </TemplatedList>
+    </div>
+</div>
+
+@code {
+
+    async Task<List<EmailTemplateModel>> LoadTemplates()
+    {
+        var ordersWithStatus = new List<EmailTemplateModel>();
+        var tokenResult = await LocalStorage.GetItemAsync<string>("authToken");
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "api/GetAllTemplates");
+        request.Headers.Authorization = new AuthenticationHeaderValue("bearer", tokenResult);
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+            ordersWithStatus = await response.Content.ReadFromJsonAsync<List<EmailTemplateModel>>();
+        return ordersWithStatus;
+    }
+}

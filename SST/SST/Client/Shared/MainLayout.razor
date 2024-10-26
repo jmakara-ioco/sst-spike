@@ -1,0 +1,61 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JSRuntime
+@inject ITenantHelperService TenantHelperService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISubscriptionService SubscriptionService
+@inject NavigationManager NavigationManager
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+
+        <div class="main">
+            <AuthorizeView>
+                <Authorized>
+                    @if (!SubscriptionService.IsActive)
+                    {
+                        <div class="top-row px-4 auth">
+                            <p style="color: white; margin-bottom: 0px; padding-right: 2rem;">Your subscription has expired.</p>
+                            <button class="btn btn-danger" @onclick="ActivateNow">Activate Now</button>
+                            @*<LoginDisplay />*@
+                        </div>
+                    }
+                </Authorized>
+            </AuthorizeView>
+            <div class="content px-4">
+                @Body
+            </div>
+        </div>
+        <SST.Client.Pages.Toaster />
+    </div>
+    @code {
+
+        protected async override Task OnInitializedAsync()
+        {
+            var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            if (state.User.Identity.IsAuthenticated)
+                await SubscriptionService.GetActivePlan();
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var companyID = state.User.Claims.FirstOrDefault(x => x.Type == "CompanyID");
+            if (companyID != null)
+            {
+                var branding = await TenantHelperService.GetBranding(new Guid(companyID.Value));
+                if (branding != null)
+                    await branding.ActivateBranding(JSRuntime, NavigationManager);
+            }
+            else
+            {
+                FirmStyling styling = new FirmStyling();
+                await styling.ActivateBranding(JSRuntime, NavigationManager);
+            }
+        }
+
+        private async Task ActivateNow()
+        {
+            NavigationManager.NavigateTo("firmsubscriptionplans");
+        }
+    }

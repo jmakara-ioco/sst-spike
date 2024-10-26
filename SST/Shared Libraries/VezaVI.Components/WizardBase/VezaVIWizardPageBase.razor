@@ -1,0 +1,89 @@
+﻿@namespace VezaVI.Light.Components
+@if (WizardControl.IsActivePage(this))
+{
+    <div>
+        @ChildContent
+    </div>
+}
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [CascadingParameter]
+    public VezaVIWizard WizardControl { get; set; }
+
+    public virtual string Caption
+    {
+        get
+        {
+            return "";
+        }
+    }
+
+    public virtual string Description
+    {
+        get
+        {
+            return "";
+        }
+    }
+
+    private string _backButtonText = "Back";
+    public virtual string BackButtonText
+    {
+        get
+        {
+            return _backButtonText;
+        }
+    }
+
+    private string _nextButtonText = "Next";
+    public virtual string NextButtonText
+    {
+        get
+        {
+            return _nextButtonText;
+        }
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        WizardControl.AddPage(this);
+    }
+
+    public void Dispose()
+    {
+        WizardControl.RemovePage(this);
+    }
+
+    public virtual async Task<bool> OnSave()
+    {
+        return true;
+    }
+
+    public virtual async Task OnLoad()
+    {
+        //override to handle the load
+    }
+
+    public virtual async Task<bool> OnValidate()
+    {
+        return true;
+    }
+
+    public virtual int GetPageIdentifier()
+    {
+        return 0;
+    }
+
+    private bool _shouldSkip = false;
+    public bool ShouldSkip
+    {
+        get
+        {
+            return _shouldSkip;
+        }
+    }
+
+}

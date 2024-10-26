@@ -1,0 +1,46 @@
+﻿@inject IVezaDataService<ContractQuestionAnswer> ContractQuestionAnswerService
+
+<button class="btn btn-primary" @onclick="AddAnswer">New Answer</button>
+<div class="vi-multi-item-textbox">
+    @if ((TreeBuilder.GetAnswers(QuestionID) != null) && (TreeBuilder.GetAnswers(QuestionID).Count > 0))
+    {
+        @foreach (var item in TreeBuilder.GetAnswers(QuestionID))
+        {
+            <QuestionAnswerNode Answer="item" NullText="Enter your answer text" />
+        }
+    }
+    else
+    {
+        <div>Click on Add Question to add a new question</div>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public Guid QuestionID { get; set; }
+    [Parameter]
+    public string NullText { get; set; }
+    [CascadingParameter]
+    public QuestionNodeTreeBuilder TreeBuilder { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var answers = await ContractQuestionAnswerService.GetAllAsync("AnswerText", new List<VezaVIGridFilter>()
+        {
+            new VezaVIGridFilter() { Field = "QuestionID", Value = QuestionID.ToString(), Equals = true }
+        });
+        await TreeBuilder.InitAnswers(answers.Items);
+    }
+
+    public async void AddAnswer()
+    {
+        ContractQuestionAnswer answer = new ContractQuestionAnswer()
+        {
+            QuestionID = this.QuestionID
+        };
+        /*SAve*/
+        await TreeBuilder.AddAnswer(answer);
+    }
+
+}

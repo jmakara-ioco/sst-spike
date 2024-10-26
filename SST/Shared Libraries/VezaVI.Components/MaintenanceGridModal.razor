@@ -1,0 +1,91 @@
+﻿@typeparam TItem
+@inject IVezaDataService<TItem> VezaDataService
+@namespace VezaVI.Light.Components
+@inject IModalService ModalService
+
+    <div class="simple-form">
+        <EditForm Model="_item" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+            @if (Errors.Count > 0)
+            {
+                <div class="alert alert-danger" role="alert">
+                    @foreach (var error in Errors)
+                    {
+                        <p>@error</p>
+                    }
+                </div>
+            }
+            @if (_item != null)
+            {
+                @ModalContent(_item)
+            }
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button @onclick="BlazoredModal.CancelAsync" class="btn btn-secondary">Cancel</button>
+        </EditForm>
+    </div>
+
+@code
+{
+    public List<string> Errors { get; set; } = new List<string>();
+
+    TItem _item = new TItem();
+    [CascadingParameter]
+    BlazoredModalInstance BlazoredModal { get; set; }
+
+    [Parameter]
+    public object ID { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> ModalContent { get; set; }
+
+    [Parameter]
+    public EventCallback<VezaModalSubmitEventArgs<TItem>> OnModalSubmit { get; set; }
+    [Parameter]
+    public EventCallback<VezaModalSubmitEventArgs<TItem>> AfterModalSubmit { get; set; }
+    [Parameter]
+    public EventCallback<TItem> BeforeModalDisplay { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (ID == null)
+        {
+            _item = new TItem();
+            if (BeforeModalDisplay.HasDelegate)
+                await BeforeModalDisplay.InvokeAsync(_item);
+        }
+        else
+            _item = await VezaDataService.GetAsync(ID);
+        StateHasChanged();
+    }
+
+    async Task Save()
+    {
+        Errors = new List<string>();
+        var allowClose = true;
+        if (OnModalSubmit.HasDelegate)
+        {
+            VezaModalSubmitEventArgs<TItem> args = new VezaModalSubmitEventArgs<TItem>(_item);
+            await OnModalSubmit.InvokeAsync(args);
+            allowClose = args.AllowClose;
+        }
+        if (allowClose)
+        {
+            var result = (ID == null) ? await VezaDataService.AddAsync(_item) : await VezaDataService.UpdateAsync(_item);
+            if (result.Successful)
+            {
+                await InvokeAsync(() => StateHasChanged());
+                await BlazoredModal.CloseAsync(ModalResult.Ok<TItem>(_item));
+                if (AfterModalSubmit.HasDelegate)
+                {
+                    VezaModalSubmitEventArgs<TItem> args = new VezaModalSubmitEventArgs<TItem>(_item);
+                    await AfterModalSubmit.InvokeAsync(args);
+                }
+            }
+            else
+            {
+                Errors = result.Errors.ToList();
+            }
+        }
+    }
+
+}

@@ -1,0 +1,91 @@
+﻿@inject HttpClient _httpClient
+@inject ILocalStorageService _localStorage
+
+@if (!string.IsNullOrEmpty(Caption))
+{
+    <h3>@Caption</h3>
+}
+<VezaVITileControl AdditionalCssClass="" Columns="@Columns">
+    @if (Value != null)
+    {
+        @foreach (var token in Value)
+        {
+            <VezaVITile CssClass="vi-grid-col-clear" Columns="1">
+                <div class="form-group" style="display: inline-flex; flex-direction: row-reverse;">
+                    <h5 style="padding-top: 0.75rem;">@token.DisplayName</h5>
+                    <label class="switch" style="float: right; margin: 7px;">
+                        <input type="checkbox" id="@("requested_" + token.MaintenanceID)" Class="form-control" checked="@token.IsSelected" @onchange="@(async (e) => await CheckboxClicked(token.ID, e.Value))" />
+                        <span class="switch-slider round"></span>
+                    </label>
+                </div>
+            </VezaVITile>
+        }
+    }
+</VezaVITileControl>
+
+@code {
+
+    [Parameter]
+    public int Columns { get; set; } = 2;
+    [Parameter]
+    public bool IsLive { get; set; } = true;
+    [Parameter]
+    public string GetUrl { get; set; }
+    [Parameter]
+    public string PostUrl { get; set; }
+    [Parameter]
+    public string Caption { get; set; }
+
+    [Parameter]
+    public EventCallback<List<MaintenanceToken>> ValueChanged { get; set; }
+
+    private List<MaintenanceToken> _value = null;
+    [Parameter]
+    public List<MaintenanceToken> Value
+    {
+        get
+        {
+            return _value;
+        }
+        set
+        {
+            if (_value == value)
+                return;
+            _value = value;
+            ValueChanged.InvokeAsync(value);
+        }
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var token = await _localStorage.GetItemAsync<string>("authToken");
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+        var response = await _httpClient.GetAsync(GetUrl);
+        var content = await response.Content.ReadAsStringAsync();
+        var Result = JsonSerializer.Deserialize<List<MaintenanceToken>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Value = Result;
+    }
+
+    protected async Task Save()
+    {
+        if (IsLive)
+        {
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            var loginAsJson = JsonSerializer.Serialize(Value);
+            var response = await _httpClient.PostAsync(PostUrl, new StringContent(loginAsJson, Encoding.UTF8, "application/json"));
+            var loginResult = JsonSerializer.Deserialize<VezaScreenSubmitResult>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+    }
+
+    async Task CheckboxClicked(Guid id, object checkedValue)
+    {
+        var token = Value.FirstOrDefault(x => x.ID == id);
+        if (token != null)
+        {
+            token.IsSelected = Convert.ToBoolean(checkedValue);
+        }
+        await Save();
+        StateHasChanged();
+    }
+}

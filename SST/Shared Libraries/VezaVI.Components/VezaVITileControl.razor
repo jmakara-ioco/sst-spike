@@ -1,0 +1,46 @@
+﻿<section id="@Id" class="grid @CssClass">
+    <CascadingValue Value="this">
+        @if (Tiles.Count == 0)
+        {
+            <article class="vi-grid-col-@Columns">
+                <center><h5>No records to display</h5></center>
+            </article>
+        }
+        @ChildContent
+    </CascadingValue>
+</section>
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public int Columns { get; set; } = 1;
+    public string CssClass {
+        get
+        {
+            return $"grid-col-{Columns} {AdditionalCssClass}";
+        }
+    }
+
+    [Parameter]
+    public string AdditionalCssClass { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private List<VezaVITile> Tiles = new List<VezaVITile>();
+
+    public void AddTile(VezaVITile tile)
+    {
+        Tiles.Add(tile);
+        StateHasChanged();
+    }
+
+    public void RemoveTile(VezaVITile tile)
+    {
+        Tiles.Remove(tile);
+        StateHasChanged();
+    }
+
+}
+

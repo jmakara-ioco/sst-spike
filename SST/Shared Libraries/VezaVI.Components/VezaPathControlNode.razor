@@ -1,0 +1,60 @@
+﻿<li>
+    <span class="vi-terminator @CSSClass()" @onclick="NodeWasClicked">@Node.Caption
+    @if (Node["Level"] != string.Empty)
+    {
+        <br />
+        @Node["Level"]
+    }
+    </span>
+    @if (Node.GetNodes().Count > 0)
+    {
+        <ul>
+            @foreach (var node in Node.GetNodes())
+            {
+                <VezaPathControlNode Node="node" NodeClicked="NodeClicked" />
+            }
+        </ul>
+    }
+</li>
+
+@code {
+
+    [Parameter]
+    public VezaPathNode Node { get; set; }
+
+    public string CSSClass()
+    {
+        switch (Node.NType)
+        {
+            case NodeType.Error:
+                return "vi-terminator-error";
+            case NodeType.Answer:
+                return "vi-terminator-answer";
+            case NodeType.Selectable:
+                if (Node.IsSelected)
+                {
+                    if (Node.CustomSelectedNodeCSS != string.Empty)
+                        return Node.CustomSelectedNodeCSS;
+                    else
+                        return "vi-terminator-selected";
+                }
+                if (Node.CustomNodeCSS != string.Empty)
+                    return Node.CustomNodeCSS;
+                else
+                    return "vi-terminator-normal";
+            case NodeType.Normal:
+            default:
+                return "vi-terminator-normal";
+        }
+    }
+
+    [Parameter]
+    public EventCallback<VezaPathNodeClickEvent> NodeClicked { get; set; }
+
+    private void NodeWasClicked()
+    {
+        VezaPathNodeClickEvent e = new VezaPathNodeClickEvent(Node);
+        if (NodeClicked.HasDelegate)
+            NodeClicked.InvokeAsync(e);
+    }
+}

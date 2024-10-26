@@ -1,0 +1,83 @@
+﻿@implements IDisposable
+
+<span class="vi-multi-item">
+    <span class="vi-multi-item-cancel" @onclick="@(() => TreeBuilder.TryRemoveAnswer(Answer))">x</span>
+    <div class="form-group">
+        <label for="AnswerText">Answer Text</label>
+        <input id="AnswerText" type="text" class="form-control" placeholder="@NullText" @bind-value="Answer.AnswerText" />
+    </div>
+    <div class="form-group">
+        <label>Next Question</label>
+        <select class="form-control" @bind="Answer.NextQuestionIDBindable">
+            <option value=" ">No next Question</option>
+            @if (TreeBuilder.GetAllQuestions() != null)
+            {
+                foreach (var question in TreeBuilder.GetAllQuestions())
+                {
+                    <option value="@question.ID">@question.QuestionText</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Activate Template</label>
+        <select class="form-control" @bind="Answer.ContractTemplateIDBindable">
+            <option value=" ">No Template</option>
+            @if (TreeBuilder.GetAllTemplates() != null)
+            {
+                foreach (var question in TreeBuilder.GetAllTemplates())
+                {
+                    <option value="@question.ID">@question.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Collect data for these Data Fields</label>
+        <QuestionAnswerDataFieldNode QuestionAnswerID="@Answer.ID" />
+    </div>
+    <div class="form-group">
+        <label>Ignore Clause</label>
+        <ContractQuestionAnswerIgnoredClauseNode QuestionAnswerID="@Answer.ID" />
+    </div>
+    <div class="vi-status">
+        @Answer.Status
+    </div>
+</span>
+
+
+@code {
+
+    private ContractQuestionAnswer _answer = null;
+    [Parameter]
+    public ContractQuestionAnswer Answer
+    {
+        get
+        {
+            return _answer;
+        }
+        set
+        {
+            _answer = value;
+            if (_answer != null)
+                _answer.PropertyChanged += PropertyChanged;
+        }
+    }
+    [CascadingParameter]
+    public QuestionNodeTreeBuilder TreeBuilder { get; set; }
+    
+    [Parameter]
+    public string NullText { get; set; }
+
+    private async void PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        await TreeBuilder.SaveAnswer(Answer);
+    }
+
+    public void Dispose()
+    {
+        if (_answer != null)
+            _answer.PropertyChanged -= PropertyChanged;
+    }
+
+}

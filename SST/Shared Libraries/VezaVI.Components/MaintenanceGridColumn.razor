@@ -1,0 +1,62 @@
+﻿@implements IDisposable
+
+@if (Grid.DisplayAs == DisplayAs.Grid)
+{
+    @if (AllowSort)
+    {
+        <th><span @onclick="@(() => Grid.SortAsync(PropertyName))">@Caption</span><i class="@(Grid.SortIndicator(PropertyName))" @onclick="@(() => Grid.SortAsync(PropertyName))"></i></th>
+    }
+    else
+    {
+        <th>@Caption</th>
+    }
+}
+else if (Grid.DisplayAs == DisplayAs.PanelRows)
+{
+    @if (AllowSort)
+    {
+        <td><span @onclick="@(() => Grid.SortAsync(PropertyName))">@Caption</span><i class="@(Grid.SortIndicator(PropertyName))" @onclick="@(() => Grid.SortAsync(PropertyName))"></i></td>
+    }
+    else
+    {
+        <td>@Caption</td>
+    }
+}
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Parameter]
+    public string Caption { get; set; }
+
+    [Parameter]
+    public bool UseAsDisplay { get; set; } = false;
+
+    [Parameter]
+    public string PropertyName { get; set; }
+
+    [Parameter]
+    public bool AllowSort { get; set; } = false;
+
+    [Parameter]
+    public bool UseAsBackground { get; set; } = false;
+
+    [Parameter]
+    public RenderFragment<dynamic> Template { get; set; }
+
+    [CascadingParameter]
+    public ISortable Grid { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        Grid.AddColumn(this);
+    }
+
+    public void Dispose()
+    {
+        Grid.RemoveColumn(this);
+    }
+
+}

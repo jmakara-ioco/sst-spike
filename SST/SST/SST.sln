@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SST.Server", "Server\SST.Server.csproj", "{A97DA7BA-4D7B-4D9F-B6D0-FCD929E6F5FD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SST.Client", "Client\SST.Client.csproj", "{4D9EF61B-7CD6-4E8A-B7D4-600FAF5A369E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SST.Shared", "Shared\SST.Shared.csproj", "{9994D1FB-B06D-4A10-866A-EA5A786EEC25}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VezaVI.Light.Components", "..\Shared Libraries\VezaVI.Components\VezaVI.Light.Components.csproj", "{9E141A72-011D-4E0A-8DBF-8BB783522748}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VezaVI.Light.Shared", "..\Shared Libraries\VezaVI.Light.Shared\VezaVI.Light.Shared.csproj", "{33E0D598-C5EE-4B42-84D4-AC32428655DB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VezaVI.Light.ServerExtensions", "..\Shared Libraries\VezaVI.ServerExtensions\VezaVI.Light.ServerExtensions.csproj", "{29F04AD9-3424-4E54-AA39-33F65AA96E19}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A97DA7BA-4D7B-4D9F-B6D0-FCD929E6F5FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A97DA7BA-4D7B-4D9F-B6D0-FCD929E6F5FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A97DA7BA-4D7B-4D9F-B6D0-FCD929E6F5FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A97DA7BA-4D7B-4D9F-B6D0-FCD929E6F5FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D9EF61B-7CD6-4E8A-B7D4-600FAF5A369E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D9EF61B-7CD6-4E8A-B7D4-600FAF5A369E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D9EF61B-7CD6-4E8A-B7D4-600FAF5A369E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D9EF61B-7CD6-4E8A-B7D4-600FAF5A369E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9994D1FB-B06D-4A10-866A-EA5A786EEC25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9994D1FB-B06D-4A10-866A-EA5A786EEC25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9994D1FB-B06D-4A10-866A-EA5A786EEC25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9994D1FB-B06D-4A10-866A-EA5A786EEC25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E141A72-011D-4E0A-8DBF-8BB783522748}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E141A72-011D-4E0A-8DBF-8BB783522748}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E141A72-011D-4E0A-8DBF-8BB783522748}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E141A72-011D-4E0A-8DBF-8BB783522748}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33E0D598-C5EE-4B42-84D4-AC32428655DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33E0D598-C5EE-4B42-84D4-AC32428655DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33E0D598-C5EE-4B42-84D4-AC32428655DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33E0D598-C5EE-4B42-84D4-AC32428655DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29F04AD9-3424-4E54-AA39-33F65AA96E19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29F04AD9-3424-4E54-AA39-33F65AA96E19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29F04AD9-3424-4E54-AA39-33F65AA96E19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29F04AD9-3424-4E54-AA39-33F65AA96E19}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7DB8DDED-3B1C-4EFD-B181-EA3378012808}
+	EndGlobalSection
+EndGlobal

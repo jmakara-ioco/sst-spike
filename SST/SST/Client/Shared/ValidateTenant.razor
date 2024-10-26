@@ -1,0 +1,8 @@
+@inject ITenantHelperService TenantHelperService
+
+@code {
+    protected override void OnInitialized()
+    {
+        TenantHelperService.ValidateTenant();
+    }
+}

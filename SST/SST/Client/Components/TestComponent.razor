@@ -1,0 +1,496 @@
+﻿@inject NavigationManager NavigationManager
+@inject IQuestionProcessService QuestionProcessService
+@inject ILocalStorageService LocalStorage
+@inject IContractHistoryService ContractHistoryService
+@inject IModalService ModalService
+
+
+    @if (!isCompleted)
+    {
+        <EditForm Model="token">
+            <div class="card-body">
+                @if (!_summary)
+                {
+                    if (token.QuestionType == (int)QuestionType.CustomOptions)
+                    {
+                        <h5>@token.QuestionText<span class="vi-round-icon" @onclick="ShowMsg"><!--!--><span class="oi oi-info"></span></span></h5>
+                        @foreach (var answer in token.Answers)
+                        {
+                            <div class="form-group">
+                                <input type="radio" id="@answer.AnswerID.ToString()" name="userFields" value="@answer.AnswerID" @onchange="SelectionChanged" checked=@(answerID == answer.AnswerID)>
+                                <label for="@answer.AnswerID.ToString()">@answer.OptionText</label>
+                            </div>
+                            @if (answerID == answer.AnswerID)
+                            {
+                                if (answer.DataFields != null)
+                                {
+                                    foreach (var field in answer.DataFields)
+                                    {
+                                        foreach (var udf in simulation.DataFields)
+                                        {
+                                            if (udf.DataFieldID == field.DataFieldID)
+                                            {
+                                                <div class="form-group">
+                                                    <label for="@field.DataFieldID">@field.DisplayText</label>
+                                                </div>
+                                                <div class="form-group">
+                                                    <InputText Class="form-control" id="@field.DataFieldID" @bind-Value="udf.Value" />
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (token.QuestionType == (int)QuestionType.UserFieldsOnly)
+                    {
+                        foreach (var field in token.DataFields)
+                        {
+                            foreach (var udf in simulation.DataFields)
+                            {
+                                if (udf.DataFieldID == field.DataFieldID)
+                                {
+                                    <div class="form-group">
+                                        <label for="@field.DataFieldID">@field.DisplayText</label>
+                                    </div>
+                                    <div class="form-group">
+                                        <InputText Class="form-control" id="@field.DataFieldID" @bind-Value="udf.Value" />
+                                    </div>
+                                }
+                            }
+                        }
+                    }
+                    else if (token.QuestionType == (int)QuestionType.Quantity)
+                    {
+                        <h5>@token.QuestionText<span class="vi-round-icon" @onclick="ShowMsg"><!--!--><span class="oi oi-info"></span></span></h5>
+                        <InputNumber Id="answer" class="form-control" @bind-Value="@Answer" />
+                        <SST.Client.Pages.EntityValues Entity="token.Entity" Simulation="simulation" NrOfEntities="Answer" />
+                    }
+                    @if (ShowErrors)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <p>@Error</p>
+                        </div>
+                    }
+                    @if (prevQuestion.Count > 0)
+                    {
+                        <button type="button" class="btn btn-primary mx-2" @onclick="Back">Back</button>
+                    }
+                    <button type="submit" class="btn btn-primary" @onclick="SaveAndNext">Next</button>
+                }
+                else
+                {
+                    <h5>Questions</h5>
+                    int counter = 1;
+                    foreach (var question in simulation.Questions)
+                    {
+                        var q = _questionText[question.QuestionID];
+                        var sq = simulation.Questions.FirstOrDefault(x => x.QuestionID == question.QuestionID);
+
+                        <p>Question @counter: @q</p>
+                        @if (question.AnswerID != Guid.Empty)
+                        {
+                            <p>Answer: @(_answerText[(Guid)question.AnswerID]) </p>
+                        }
+                        else
+                        {
+                            if (question.Answer > -1)
+                            {
+                                <p>Answer: @question.Answer </p>
+                            }
+                        }
+                        counter++;
+                    }
+                    if (simulation.DataFields.Count > 0)
+                    {
+                        <h5>Data Fields</h5>
+                        <VezaVITileControl Columns="2">
+                            @foreach (var q in simulation.DataFields)
+                            {
+                                <VezaVI.Light.Components.VezaVITile>
+                                    <p>
+                                        @_dataFields[q.DataFieldID]: <InputText Class="form-control" @bind-Value="@q.Value" />
+                                    </p>
+                                </VezaVI.Light.Components.VezaVITile>
+                            }
+                        </VezaVITileControl>
+                    }
+                    if (simulation.Entities.Count > 0)
+                    {
+                        foreach (var e in simulation.Entities)
+                        {
+                            if (e.Name != null)
+                            {
+                                <h3>@VezaVIUtils.Plural(e.Name)</h3>
+                                <VezaVITileControl Columns="2">
+                                    @for (int i = 1; i <= e.NrOfEntities; i++)
+                                    {
+                                        <SST.Client.Pages.EntityUDFValues DataFields="e.DataFields" DataFieldsValues="_dataFields" Level="i" Name="@e.Name" />
+                                    }
+                                </VezaVITileControl>
+                            }
+                        }
+                    }
+                    <button class="btn btn-primary mx-2" @onclick="GoBack">Back</button>
+                    <button class="btn btn-primary" @onclick="Complete">Confirm</button>
+                }
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <form action="https://www.paygate.co.za/paysubs/process.trans" method="POST">
+            <h3>Confirm Payment</h3>
+            <div class="form-group">
+                <label for="total">Contract Total</label>
+                <label Id="users" Class="form-control">R @(Convert.ToInt32(AMOUNT) / 100)</label>
+            </div>
+            <input type="hidden" name="VERSION" value="@VERSION">
+            <input type="hidden" name="PAYGATE_ID" value="@PAYGATE_ID">
+            <input type="hidden" name="REFERENCE" value="@REFERENCE">
+            <input type="hidden" name="AMOUNT" value="@AMOUNT">
+            <input type="hidden" name="CURRENCY" value="@CURRENCY">
+            <input type="hidden" name="RETURN_URL" value="@RETURN_URL">
+            <input type="hidden" name="EMAIL" value="@EMAIL">
+            <input type="hidden" name="TRANSACTION_DATE" value="@TRANSACTION_DATE">
+            <input type="hidden" name="SUBS_START_DATE" value="@SUBS_START_DATE">
+            <input type="hidden" name="SUBS_END_DATE" value="@SUBS_END_DATE">
+            <input type="hidden" name="SUBS_FREQUENCY" value="@SUBS_FREQUENCY">
+            <input type="hidden" name="PROCESS_NOW" value="@PROCESS_NOW">
+            <input type="hidden" name="PROCESS_NOW_AMOUNT" value="@PROCESS_NOW_AMOUNT">
+            <input type="hidden" name="KEY" value="@KEY">
+            <input type="hidden" name="CHECKSUM" value="@CalculateChecksum()">
+            <button class="btn btn-primary" type="submit">Pay Now</button>
+        </form>
+    }
+
+
+
+@code {
+
+    private string CalculateChecksum()
+    {
+        return VezaVIUtils.CreateMD5(VERSION + "|" + PAYGATE_ID + "|" + REFERENCE + "|" + AMOUNT + "|" + CURRENCY + "|" +
+            RETURN_URL + "|" + TRANSACTION_DATE + "|" + EMAIL + "|" + SUBS_START_DATE + "|" + SUBS_END_DATE + "|" +
+            SUBS_FREQUENCY + "|" + PROCESS_NOW + "|" + PROCESS_NOW_AMOUNT + "|" + KEY);
+    }
+
+    private string VERSION = "21";
+    private string PAYGATE_ID = "10011072130";
+    private string REFERENCE = "";
+    private string AMOUNT = "0";
+    public string CURRENCY = "ZAR";
+    public string RETURN_URL = "";
+    public string EMAIL = "nando.mangels@gmail.com";
+    public string TRANSACTION_DATE = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+    public string SUBS_START_DATE = DateTime.Now.ToString("yyyy-MM-dd");
+    public string SUBS_END_DATE = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd");
+    public string SUBS_FREQUENCY = "228";
+    public string PROCESS_NOW = "NO";
+    public string PROCESS_NOW_AMOUNT = "";
+    public string KEY = "secret";
+
+    QuestionSimulation simulation = new QuestionSimulation();
+    QuestionToken token = new QuestionToken();
+    ContractQuestion currentQuestion = null;
+    string testValue { get; set; }
+    public bool isCompleted { get; set; } = false;
+    private Guid _transactionID;
+    [Parameter]
+    public Guid TransactionID
+    {
+        get
+        {
+            return _transactionID;
+        }
+        set
+        {
+            _transactionID = value;
+        }
+    }
+    [Parameter]
+    public bool IsOnlineStore { get; set; }
+
+    public int Answer { get; set; } = 1;
+    Guid answerID = Guid.Empty;
+    void SelectionChanged(ChangeEventArgs args)
+    {
+        answerID = new Guid(args.Value.ToString());
+    }
+
+    private Dictionary<Guid, string> _questionText = new Dictionary<Guid, string>();
+    private Dictionary<Guid, string> _answerText = new Dictionary<Guid, string>();
+    private Dictionary<Guid, string> _dataFields = new Dictionary<Guid, string>();
+
+    private bool ShowErrors;
+    private string Error = "";
+
+    protected async override Task OnInitializedAsync()
+    {
+        token = await QuestionProcessService.GetRootQuestion(TransactionID);
+        simulation = await LocalStorage.GetItemAsync<QuestionSimulation>("QuestionSimulation");
+
+        foreach (var dataFields in token.DataFields)
+        {
+            var dataField = simulation.DataFields.FirstOrDefault(x => x.DataFieldID == dataFields.DataFieldID);
+            if (dataField == null)
+            {
+                simulation.DataFields.Add(new QuestionSimulationDataToken(dataFields.DataFieldID));
+            }
+            if (!_dataFields.ContainsKey(dataFields.DataFieldID))
+                _dataFields.Add(dataFields.DataFieldID, dataFields.DisplayText);
+        }
+        foreach (var answer in token.Answers)
+        {
+            foreach (var dataFields in answer.DataFields)
+            {
+                var dataField = simulation.DataFields.FirstOrDefault(x => x.DataFieldID == dataFields.DataFieldID);
+                if (dataField == null)
+                {
+                    simulation.DataFields.Add(new QuestionSimulationDataToken(dataFields.DataFieldID));
+                }
+                if (!_dataFields.ContainsKey(dataFields.DataFieldID))
+                    _dataFields.Add(dataFields.DataFieldID, dataFields.DisplayText);
+            }
+        }
+
+        if (token.Entity != null)
+        {
+            var entity = simulation.Entities.FirstOrDefault(x => x.EntityID == token.EntityID);
+            if (entity == null)
+            {
+                entity = new QuestionSimulationEntityToken()
+                {
+                    EntityID = token.Entity.EntityID,
+                    Name = token.Entity.Name
+                };
+                simulation.Entities.Add(entity);
+            }
+            foreach (var dataFields in token.Entity.DataFields)
+            {
+                var dataField = entity.DataFields.FirstOrDefault(x => x.DataFieldID == dataFields.DataFieldID);
+                if (dataField == null)
+                {
+                    entity.DataFields.Add(new QuestionSimulationEntityDataToken(dataFields.DataFieldID));
+                }
+                if (!_dataFields.ContainsKey(dataFields.DataFieldID))
+                    _dataFields.Add(dataFields.DataFieldID, dataFields.DisplayText);
+            }
+        }
+    }
+
+    private void LoadQuestion(Guid id)
+    {
+
+    }
+
+    private bool Validate()
+    {
+        if (token.QuestionType == (int)QuestionType.CustomOptions)
+        {
+            if (answerID == Guid.Empty)
+            {
+                Error = "Please select an Answer";
+                return false;
+            }
+        }
+        else if (token.QuestionType == (int)QuestionType.Quantity)
+        {
+            if (Answer <= 0)
+            {
+                Error = $"The number of {VezaVIUtils.Plural(token.Entity.Name)} cannot be 0 or below.";
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public async Task Back()
+    {
+
+        var prev = prevQuestion.Last();
+        var first = prevQuestion.First();
+        prevQuestion.Remove(prev);
+
+        if (prev == first)
+        {
+            Error = "You cannot return answer all the questions first";
+        }
+
+        if (prev != null)
+        {
+            token = await QuestionProcessService.GetQuestion((Guid)prev);
+            foreach (var dataFields in token.DataFields)
+            {
+                var dataField = simulation.DataFields.FirstOrDefault(x => x.DataFieldID == dataFields.DataFieldID);
+                if (dataField == null)
+                {
+                    simulation.DataFields.Add(new QuestionSimulationDataToken(dataFields.DataFieldID));
+                }
+            }
+            if (token.Entity != null)
+            {
+                var entity = simulation.Entities.FirstOrDefault(x => x.EntityID == token.EntityID);
+                if (entity == null)
+                {
+                    entity = new QuestionSimulationEntityToken()
+                    {
+                        EntityID = token.Entity.EntityID,
+                        Name = token.Entity.Name
+                    };
+                    simulation.Entities.Add(entity);
+                }
+                foreach (var dataFields in token.Entity.DataFields)
+                {
+                    var dataField = entity.DataFields.FirstOrDefault(x => x.DataFieldID == dataFields.DataFieldID);
+                    if (dataField == null)
+                    {
+                        entity.DataFields.Add(new QuestionSimulationEntityDataToken(dataFields.DataFieldID));
+                    }
+                }
+            }
+            Answer = (token.QuestionType == (int)QuestionType.Quantity) ? simulation.Questions.FirstOrDefault(x => x.QuestionID == token.QuestionID).Answer : -1;
+            answerID = (token.QuestionType == (int)QuestionType.CustomOptions) ? (Guid)simulation.Questions.FirstOrDefault(x => x.QuestionID == token.QuestionID).AnswerID : Guid.Empty;
+        }
+    }
+    private bool _summary = false;
+    List<Guid> prevQuestion = new List<Guid>();
+    private async Task SaveAndNext()
+    {
+
+        if (Validate())
+        {
+            if (!_questionText.ContainsKey(token.QuestionID))
+                _questionText.Add(token.QuestionID, token.QuestionText);
+
+            if (answerID != Guid.Empty && !_answerText.ContainsKey(answerID))
+                _answerText.Add(answerID, token.Answers.FirstOrDefault(x => x.AnswerID == answerID).OptionText);
+
+            prevQuestion.Add(token.QuestionID);
+            if (token.QuestionType == (int)QuestionType.Quantity)
+            {
+                var entity = simulation.Entities.FirstOrDefault(x => x.EntityID == token.EntityID);
+                entity.NrOfEntities = Answer;
+            }
+            /*Save*/
+            var question = simulation.Questions.FirstOrDefault(x => x.QuestionID == token.QuestionID);
+            if (question != null)
+            {
+                question.AnswerID = answerID;
+                question.Answer = Answer;
+            }
+            else
+            {
+                simulation.Questions.Add(new QuestionSimulationToken()
+                {
+                    QuestionID = token.QuestionID,
+                    AnswerID = answerID,
+                    Answer = Answer
+                });
+            }
+            await LocalStorage.SetItemAsync<QuestionSimulation>("QuestionSimulation", simulation);
+            /*Has Next Question?*/
+            var nextQuestionID = (token.QuestionType == (int)QuestionType.CustomOptions) ? token.Answers.FirstOrDefault(x => x.AnswerID == answerID).NextQuestionID : token.NextQuestionID;
+            if (nextQuestionID != null)
+            {
+                token = await QuestionProcessService.GetQuestion((Guid)nextQuestionID);
+                foreach (var dataFields in token.DataFields)
+                {
+                    var dataField = simulation.DataFields.FirstOrDefault(x => x.DataFieldID == dataFields.DataFieldID);
+                    if (dataField == null)
+                    {
+                        simulation.DataFields.Add(new QuestionSimulationDataToken(dataFields.DataFieldID));
+                    }
+                    if (!_dataFields.ContainsKey(dataFields.DataFieldID))
+                        _dataFields.Add(dataFields.DataFieldID, dataFields.DisplayText);
+                }
+                if (token.Entity != null)
+                {
+                    var entity = simulation.Entities.FirstOrDefault(x => x.EntityID == token.EntityID);
+                    if (entity == null)
+                    {
+                        entity = new QuestionSimulationEntityToken()
+                        {
+                            EntityID = token.Entity.EntityID,
+                            Name = token.Entity.Name
+                        };
+                        simulation.Entities.Add(entity);
+                    }
+                    foreach (var dataFields in token.Entity.DataFields)
+                    {
+                        var dataField = entity.DataFields.FirstOrDefault(x => x.DataFieldID == dataFields.DataFieldID);
+                        if (dataField == null)
+                        {
+                            entity.DataFields.Add(new QuestionSimulationEntityDataToken(dataFields.DataFieldID));
+                        }
+                        if (!_dataFields.ContainsKey(dataFields.DataFieldID))
+                            _dataFields.Add(dataFields.DataFieldID, dataFields.DisplayText);
+                    }
+                }
+                var quest = simulation.Questions.FirstOrDefault(x => x.QuestionID == token.QuestionID);
+                if (quest != null)
+                {
+                    Answer = (token.QuestionType == (int)QuestionType.Quantity) ? simulation.Questions.FirstOrDefault(x => x.QuestionID == token.QuestionID).Answer : -1;
+                    answerID = (token.QuestionType == (int)QuestionType.CustomOptions) ? (Guid)simulation.Questions.FirstOrDefault(x => x.QuestionID == token.QuestionID).AnswerID : Guid.Empty;
+                }
+                else
+                {
+                    Answer = 1;
+                    answerID = Guid.Empty;
+                }
+            }
+            else
+            {
+                _summary = true;
+            }
+            StateHasChanged();
+
+            ShowErrors = false;
+        }
+        else
+        {
+            ShowErrors = true;
+        }
+    }
+
+    public void ShowMsg()
+    {
+        ModalParameters param = new ModalParameters();
+        param.Add("Message", token.Info);
+        ModalService.Show(typeof(MsgBox), "Question Information", param);
+    }
+
+    private async Task Complete()
+    {
+        /*Save Transaction*/
+        /*Save to DB History*/
+        //simulation = await LocalStorage.GetItemAsync<QuestionSimulation>("QuestionSimulation");
+        //var SaveToken = await LocalStorage.GetItemAsync<string>("QuestionSimulation");
+        var result = await ContractHistoryService.UpdateContentJson(simulation);
+        if (result.Successful)
+        {
+            if (IsOnlineStore)
+            {
+                REFERENCE = TransactionID.ToString();
+                AMOUNT = result.AdditionalValue.ToString();
+                RETURN_URL = $"{NavigationManager.BaseUri}contractsummary/{result.EntityID}";
+                isCompleted = true;
+            }
+            else
+            {
+                NavigationManager.NavigateTo($"/contractsummary/{result.EntityID}");
+            }
+        }
+        else
+        {
+
+        }
+    }
+
+    private async Task GoBack()
+    {
+        _summary = false;
+    }
+
+}

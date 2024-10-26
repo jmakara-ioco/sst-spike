@@ -1,0 +1,347 @@
+﻿@inject IVezaDataService<ContractQuestion> ContractQuestionService
+@inject IVezaDataService<ContractClause> ContractClauseService
+@inject IVezaDataService<ContractQuestionAnswer> ContractQuestionAnswerService
+@inject IVezaDataService<ContractTransactionDataField> ContractDataFieldService
+@inject IVezaDataService<ContractTransactionTemplate> ContractTransactionTemplateService
+@inject IVezaDataService<ContractTransactionEntity> ContractTransactionEntityService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="vi-question-tree">
+    <div class="vi-question-tree-toolbar">
+        <button class="btn btn-primary" @onclick="AddQuestion">New Question</button>
+        <h3>Questions</h3>
+        <ul>
+            <li @onclick="() => { SelectedElement = Guid.Empty; }"><span class="vi-question-selector">View All Questions</span></li>
+            @{
+                int counter = 1;
+                foreach (var q in GetAllQuestions().OrderBy(x => x.ID))
+                {
+                    string cssClass = (q.ID == SelectedElement) ? "vi-question-tree-active" : "";
+                    <li class="@cssClass" @onclick="() => { SelectedElement = q.ID; }"><span class="vi-question-selector">@q.QuestionText</span></li>
+                    counter++;
+                }
+            }
+        </ul>
+    </div>
+    <div class="vi-question-tree-content">
+        <VezaVI.Light.Components.VezaVITileControl Columns="3">
+            <VezaVITile Columns="1">
+                <label class="vi-pad5">Toggle Display</label>
+                <label class="switch">
+                    <input type="checkbox" id="ViewToggle" Class="form-control" @bind="@_viewToggle" />
+                    <span class="switch-slider round"></span>
+                </label>
+            </VezaVITile>
+            <VezaVITile Columns="1">
+                <a class="vi-pad5 btn btn-primary" href="@($"/startquestion/{ContractTransactionID}")" target="_blank">Start Simulation</a>;
+                <button class="btn btn-primary" @onclick="Validate">Validate</button>
+            </VezaVITile>
+            <VezaVITile Columns="1">
+                <label class="vi-pad5">Show / Hide Tree</label>
+                <label class="switch">
+                    <input type="checkbox" id="ShowToggle" Class="form-control" @bind="@_showToggle" />
+                    <span class="switch-slider round"></span>
+                </label>
+            </VezaVITile>
+        </VezaVI.Light.Components.VezaVITileControl>
+        <CascadingValue Value="this">
+            <QuestionDecisionTree ViewToggle="_viewToggle" SimulationToggle="_simToggle" ShowToggle="_showToggle" />
+            @if (Questions != null)
+            {
+                @foreach (var question in VisibleQuestions())
+                {
+                    <QuestionNode Question="question" />
+                }
+            }
+        </CascadingValue>
+</div>
+</div>
+
+@code {
+
+    public void Validate()
+    {
+        validations.Clear();
+        foreach (ContractQuestion q in Questions)
+        {
+            q.Status = "";
+            if (string.IsNullOrEmpty(q.QuestionText))
+            {
+                q.Status = "No Question Text Entered";
+            }
+            if (string.IsNullOrEmpty(q.Information))
+            {
+                if (q.Status != string.Empty)
+                    q.Status += ";";
+                q.Status = "No Question Information Entered";
+            }
+        }
+        foreach (var ans in QuestionAnswers)
+        {
+            ans.Status = "";
+            if (string.IsNullOrEmpty(ans.AnswerText))
+            {
+                ans.Status = "No Answer Text Entered";
+            }
+        }
+        StateHasChanged();
+    }
+
+    private List<ContractQuestion> VisibleQuestions()
+    {
+        if (SelectedElement != Guid.Empty)
+        {
+            return Questions.Where(x => x.ID == SelectedElement).ToList();
+        }
+        return Questions;
+    }
+
+    private bool _viewToggle = true;
+    private bool _simToggle = true;
+    private bool _showToggle = true;
+
+    private void ToggleView()
+    {
+        _viewToggle = !_viewToggle;
+        //StateHasChanged();
+    }
+
+    private void ToggleSim()
+    {
+        _simToggle = !_simToggle;
+        //StateHasChanged();
+    }
+
+    private void ToggleShow()
+    {
+        _showToggle = !_showToggle;
+        //StateHasChanged();
+    }
+
+    [Parameter]
+    public Guid ContractTransactionID { get; set; }
+    private List<ContractQuestion> Questions = new List<ContractQuestion>();
+    private List<ContractQuestionAnswer> QuestionAnswers { get; set; } = new List<ContractQuestionAnswer>();
+    private List<ContractTransactionDataField> DataFields { get; set; } = new List<ContractTransactionDataField>();
+    private List<ContractTransactionTemplate> Templates { get; set; } = new List<ContractTransactionTemplate>();
+    private List<ContractTransactionEntity> Entities { get; set; } = new List<ContractTransactionEntity>();
+    private List<ContractClause> Clauses { get; set; } = new List<ContractClause>();
+
+    List<string> validations = new List<string>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        /*Data Fields*/
+        var dataFields = await ContractDataFieldService.GetAllAsync("FieldName", new List<VezaVIGridFilter>()
+{
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = ContractTransactionID.ToString(), Equals = true }
+        });
+        DataFields = dataFields.Items;
+
+        /**/
+        var templates = await ContractTransactionTemplateService.GetAllAsync("Name", new List<VezaVIGridFilter>()
+    {
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = ContractTransactionID.ToString(), Equals = true }
+        });
+        Templates = templates.Items;
+
+
+        var clauses = await ContractClauseService.GetAllAsync("Code", new List<VezaVIGridFilter>()
+    {
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = ContractTransactionID.ToString(), Equals = true }
+        });
+        Clauses = clauses.Items;
+
+        var entities = await ContractTransactionEntityService.GetAllAsync("Name", new List<VezaVIGridFilter>()
+    {
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = ContractTransactionID.ToString(), Equals = true }
+        });
+        Entities = entities.Items;
+
+        var questions = await ContractQuestionService.GetAllAsync("QuestionText", new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = ContractTransactionID.ToString(), Equals = true }
+        });
+        Questions = questions.Items.ToList();
+        //Questions = questions.Items.Where(x => x.ID == SelectedElement).ToList();
+
+        TreeChanged?.Invoke(this, EventArgs.Empty);
+        StateHasChanged();
+    }
+
+    public async void RemoveQuestion(ContractQuestion question)
+    {
+        var result = await ContractQuestionService.DeleteAsync(question.ID);
+        if (result.Successful)
+        {
+            Questions.Remove(question);
+            TreeChanged?.Invoke(this, EventArgs.Empty);
+            await InvokeAsync(() => StateHasChanged());
+        }
+        else
+        {
+            question.Status = result.Errors.FirstOrDefault();
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    public async void SaveQuestion(ContractQuestion question)
+    {
+        var result = await ContractQuestionService.UpdateAsync(question);
+        if (result.Successful)
+        {
+            question.Status = "Changes Successfully Saved";
+            TreeChanged?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            question.Status = result.Errors.FirstOrDefault();
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    public async void AddQuestion()
+    {
+        ContractQuestion question = new ContractQuestion()
+        {
+            Status = string.Empty,
+            QuestionText = string.Empty,
+            TypeOfQuestion = 0,
+            ContractTransactionID = this.ContractTransactionID,
+            IsRoot = (Questions.Count == 0)
+        };
+        var result = await ContractQuestionService.AddAsync(question);
+        if (result.Successful)
+        {
+            question.Status = "Question Successfully Added";
+            Questions.Add(question);
+            TreeChanged?.Invoke(this, EventArgs.Empty);
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    public async void MarkAsRoot(ContractQuestion question)
+    {
+        foreach (var quest in Questions)
+        {
+            quest.IsRoot = (quest.ID == question.ID);
+        }
+        TreeChanged?.Invoke(this, EventArgs.Empty);
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    public List<ContractTransactionDataField> GetAllDataFields()
+    {
+        return DataFields;
+    }
+
+    public List<ContractClause> GetAllContractClauses()
+    {
+        return Clauses;
+    }
+
+    public List<ContractQuestion> GetAllQuestions()
+    {
+        return Questions;
+    }
+
+    public List<ContractTransactionTemplate> GetAllTemplates()
+    {
+        return Templates;
+    }
+
+    public List<ContractTransactionEntity> GetAllEntities()
+    {
+        return Entities;
+    }
+
+    public event TreeChangedEventHandler TreeChanged;
+    public delegate void TreeChangedEventHandler(object sender, EventArgs e);
+
+    public async Task InitAnswers(List<ContractQuestionAnswer> answers)
+    {
+        foreach (var answer in answers)
+        {
+            var node = QuestionAnswers.FirstOrDefault(x => x.ID == answer.ID);
+            if (node != null)
+            {
+                node.NextQuestionID = answer.NextQuestionID;
+                node.QuestionID = answer.QuestionID;
+                node.AnswerText = answer.AnswerText;
+            }
+            else
+            {
+                QuestionAnswers.Add(answer);
+            }
+        }
+        TreeChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public async Task AddAnswer(ContractQuestionAnswer answer)
+    {
+        var result = await ContractQuestionAnswerService.AddAsync(answer);
+        if (result.Successful)
+        {
+            answer.Status = "Changes Successfully Saved";
+            if (QuestionAnswers.FirstOrDefault(x => x.ID == answer.ID) == null)
+            {
+                QuestionAnswers.Add(answer);
+            }
+            TreeChanged?.Invoke(this, EventArgs.Empty);
+            await InvokeAsync(() => StateHasChanged());
+        }
+        else
+        {
+            answer.Status = result.Errors.FirstOrDefault();
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    public async Task SaveAnswer(ContractQuestionAnswer answer)
+    {
+        var result = await ContractQuestionAnswerService.UpdateAsync(answer);
+        if (result.Successful)
+        {
+            answer.Status = "Changes Successfully Saved";
+            if (QuestionAnswers.FirstOrDefault(x => x.ID == answer.ID) == null)
+            {
+                QuestionAnswers.Add(answer);
+            }
+            TreeChanged?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            answer.Status = result.Errors.FirstOrDefault();
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    public async void TryRemoveAnswer(ContractQuestionAnswer answer)
+    {
+        /*Delete*/
+        var result = await ContractQuestionAnswerService.DeleteAsync(answer.GetID());
+        if (result.Successful)
+        {
+            QuestionAnswers.Remove(answer);
+            TreeChanged?.Invoke(this, EventArgs.Empty);
+            await InvokeAsync(() => StateHasChanged());
+        }
+        else
+        {
+            answer.Status = result.Errors.FirstOrDefault();
+            await InvokeAsync(() => StateHasChanged());
+        }
+    }
+
+    public List<ContractQuestionAnswer> GetAnswers(Guid questionID)
+    {
+        return QuestionAnswers.Where(x => x.QuestionID == questionID).ToList();
+    }
+
+    private Guid SelectedElement { get; set; } = Guid.Empty;
+    public void RefreshDecisionTree(Guid id)
+    {
+        SelectedElement = id;
+        TreeChanged?.Invoke(this, EventArgs.Empty);
+        StateHasChanged();
+    }
+}

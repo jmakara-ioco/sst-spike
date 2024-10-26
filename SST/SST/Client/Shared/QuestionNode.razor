@@ -1,0 +1,168 @@
+﻿@implements IDisposable
+@inject IVezaDataService<ContractQuestion> ContractQuestionService
+
+<div class="vi-question-tree-item" id="@Question.ID">
+    <span class="vi-question-tree-item-cancel" @onclick="@(() => TreeBuilder.RemoveQuestion(Question))">X</span>
+    @if (!Question.IsRoot)
+    {
+        <span class="vi-question-tree-item-root" @onclick="@(() => TreeBuilder.MarkAsRoot(Question))">Mark as First Question</span>
+    }
+    <div class="form-group">
+        <label>Type of Question</label>
+        <select class="form-control" type="text" @bind="Question.TypeOfQuestion">
+            <option value="0">Group Data Field Question</option>
+            <option value="1">Multiple Choice Question</option>
+            <option value="2">User Data Fields Only</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Question Text</label>
+        <input class="form-control" type="text" @bind-value="Question.QuestionText" />
+    </div>
+    <div class="form-group">
+        <label>Question Information / Explanation</label>
+        <input class="form-control" type="text" @bind-value="Question.Information" />
+    </div>
+    @if (Question.TypeOfQuestion == 0) /*Quantity*/
+    {
+        <VezaVI.Light.Components.VezaVITileControl Columns="2">
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Next Question</label>
+                    <select class="form-control" @bind="Question.NextQuestionIDBindable">
+                        <option value=" ">No next Question</option>
+                        @if (TreeBuilder.GetAllQuestions() != null)
+                        {
+                            foreach (var question in TreeBuilder.GetAllQuestions())
+                            {
+                                <option value="@question.ID">@question.QuestionText</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </VezaVITile>
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Activate Template</label>
+                    <QuestionTemplateNode ContractTransactionID="@Question.ContractTransactionID" QuestionID="Question.ID" />
+                </div>
+            </VezaVITile>
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Grouped Data Fields</label>
+                    <select class="form-control" @bind="Question.ContractTransactionEntityID">
+                        <option value=" ">Select Grouped Data Fields</option>
+                        @if (TreeBuilder.GetAllEntities() != null)
+                        {
+                            foreach (var entity in TreeBuilder.GetAllEntities())
+                            {
+                                <option value="@entity.ID">@entity.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </VezaVITile>
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Ignore these Clauses</label>
+                    <QuestionIgnoredClausesNode QuestionID="Question.ID" ContractTransactionID="Question.ContractTransactionID" />
+                </div>
+            </VezaVITile>
+        </VezaVI.Light.Components.VezaVITileControl>
+    }
+    else if (Question.TypeOfQuestion == 1) /*Multiple Choice Question*/
+    {
+        <VezaVI.Light.Components.VezaVITileControl Columns="2">
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Activate Template</label>
+                    <QuestionTemplateNode ContractTransactionID="@Question.ContractTransactionID" QuestionID="Question.ID" />
+                </div>
+            </VezaVITile>
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Ignore these Clauses</label>
+                    <QuestionIgnoredClausesNode QuestionID="Question.ID" ContractTransactionID="Question.ContractTransactionID" />
+                </div>
+            </VezaVITile>
+        </VezaVI.Light.Components.VezaVITileControl>
+        <div class="form-group">
+            <label>Answer Options</label>
+            <QuestionAnswersNode QuestionID="Question.ID" />
+        </div>
+
+    }
+    else if (Question.TypeOfQuestion == 2) /*User Fields Only*/
+    {
+        <VezaVI.Light.Components.VezaVITileControl Columns="2">
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Next Question</label>
+                    <select class="form-control" @bind="Question.NextQuestionIDBindable">
+                        <option value=" ">No next Question</option>
+                        @if (TreeBuilder.GetAllQuestions() != null)
+                        {
+                            foreach (var question in TreeBuilder.GetAllQuestions())
+                            {
+                                <option value="@question.ID">@question.QuestionText</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </VezaVITile>
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Activate Template</label>
+                    <QuestionTemplateNode ContractTransactionID="@Question.ContractTransactionID" QuestionID="Question.ID"/>
+                </div>
+            </VezaVITile>
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>Ignore these Clauses</label>
+                    <QuestionIgnoredClausesNode QuestionID="Question.ID" ContractTransactionID="Question.ContractTransactionID" />
+                </div>
+            </VezaVITile>
+            <VezaVITile CssClass="" Columns="1">
+                <div class="form-group">
+                    <label>User Data Fields</label>
+                    <QuestionDataFieldNode ContractTransactionID="@Question.ContractTransactionID" QuestionID="Question.ID" />
+                </div>
+            </VezaVITile>
+        </VezaVI.Light.Components.VezaVITileControl>
+    }
+    <div class="vi-status">
+        @Question.Status
+    </div>
+</div>
+
+@code {
+    private ContractQuestion _question = null;
+    [Parameter]
+    public ContractQuestion Question
+    {
+        get
+        {
+            return _question;
+        }
+        set
+        {
+            _question = value;
+            if (_question != null)
+                _question.PropertyChanged += PropertyChanged;
+        }
+    }
+    [CascadingParameter]
+    public QuestionNodeTreeBuilder TreeBuilder { get; set; }
+
+    private async void PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        TreeBuilder.SaveQuestion(Question);
+    }
+
+    public void Dispose()
+    {
+        if (_question != null)
+            _question.PropertyChanged -= PropertyChanged;
+    }
+
+}

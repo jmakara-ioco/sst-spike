@@ -1,0 +1,28 @@
+﻿@page "/clientgeneratecontract"
+@namespace SST.Client
+@inject IVezaDataService<ContractTransaction> ContractTypeService
+@inject NavigationManager NavigationManager
+
+<div class="card">
+    <div class="card-body">
+        <h5>Please make your selection</h5>
+        @foreach (ContractTransaction contractType in ContractTypes)
+        {
+            <a href="/answerquestion/@contractType.ID">
+                <div class="vi-grid-tiles">
+                    <ContractTile Caption="@contractType.Name" Base64Background="@contractType.Base64Background" />
+                </div>
+            </a>
+        }
+    </div>
+</div>
+ 
+@code {
+    public List<ContractTransaction> ContractTypes = new List<ContractTransaction>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var pagedContractTypes = await ContractTypeService.GetAllAsync("Name");
+        ContractTypes = pagedContractTypes.Items;
+    }
+} 

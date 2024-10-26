@@ -1,0 +1,100 @@
+@page "/register"
+@page "/register/{companyID:guid}"
+
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@layout EmptyLayout
+
+    <div class="register centerscreen">
+        <div class="large-logo">
+        </div>
+        <div class="card">
+            @if (ShowErrors)
+            {
+                <div class="alert alert-danger" role="alert">
+                    @foreach (var error in Errors)
+                    {
+                        <p>@error</p>
+                    }
+                </div>
+            }
+            <div class="card-body">
+                @if (CompanyID == Guid.Empty)
+                {
+                <h5 class="card-title">Enter your Bussiness details to Register. It's Easy.</h5>
+                    <EditForm Model="RegisterModel" OnValidSubmit="HandleRegistration">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="form-group">
+                            <label for="firstname">First Name</label>
+                            <InputText Id="firstname" class="form-control" @bind-Value="RegisterModel.FirstName" />
+                            <ValidationMessage For="@(() => RegisterModel.FirstName)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastname">Last Name</label>
+                            <InputText Id="lastname" class="form-control" @bind-Value="RegisterModel.LastName" />
+                            <ValidationMessage For="@(() => RegisterModel.LastName)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="firmname">Firm Name</label>
+                            <InputText Id="firmname" class="form-control" @bind-Value="RegisterModel.CompanyName" />
+                            <ValidationMessage For="@(() => RegisterModel.CompanyName)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email address</label>
+                            <InputText Id="email" class="form-control" @bind-Value="RegisterModel.Email" />
+                            <ValidationMessage For="@(() => RegisterModel.Email)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <InputText Id="password" type="password" class="form-control" @bind-Value="RegisterModel.Password" />
+                            <ValidationMessage For="@(() => RegisterModel.Password)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Confirm Password</label>
+                            <InputText Id="password" type="password" class="form-control" @bind-Value="RegisterModel.ConfirmPassword" />
+                            <ValidationMessage For="@(() => RegisterModel.ConfirmPassword)" />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Register Firm</button>
+                        <p>By creating a Bussiness Account you agree to our <a href="#">Terms & Privacy</a>.</p>
+                        <p>Already have an account? <a href="/login">Sign in</a>.</p>
+                    </EditForm>
+                }
+                else
+                {
+
+                }
+            </div>
+        </div>
+    </div>
+
+@code { 
+
+    [Parameter]
+    public Guid CompanyID { get; set; } = Guid.Empty;
+
+    private RegisterModel RegisterModel = new RegisterModel();
+    private bool ShowErrors;
+    private IEnumerable<string> Errors;
+
+    private async Task HandleRegistration()
+    {
+        ShowErrors = false;
+
+        var result = await AuthService.Register(RegisterModel);
+
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            Errors = result.Errors;
+            ShowErrors = true;
+        }
+    }
+}

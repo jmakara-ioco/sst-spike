@@ -1,0 +1,230 @@
+﻿@page "/firmcontracttemplate"
+@page "/firmcontracttemplate/{contracttransactiontemplateid:guid}"
+@inject IVezaDataService<ContractTransactionTemplate> ContractTemplateService
+@inject IVezaDataService<ContractTemplateElement> ContractTemplateElementService
+@inject IVezaDataService<ContractTransactionDataField> ContractTransactionDataFieldService
+@inject IVezaDataService<ContractClause> ContractClauseService
+@inject IVezaDataService<FirmStyling> FirmStylingService
+@inject IEditorEntityClauseService EditorEntityClauseService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+@namespace SST.Client
+@((MarkupString)Style)
+
+
+<div class="card">
+    @if (Errors.Count() > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var error in Errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+    <div class="card-body">
+        <VezaVITabControl>
+            <VezaVITab Caption="Contract Template Info">
+                <EditForm Model="ContractTransactionTemplate" OnValidSubmit="SaveContractTemplate" Context="item">
+                    <div class="form-group">
+                        <label for="Name">Name</label>
+                        <InputText Id="Name" Class="form-control" @bind-Value="ContractTransactionTemplate.Name" />
+                        <ValidationMessage For="@(() => ContractTransactionTemplate.Name)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Price">Price</label>
+                        <InputNumber Id="Name" Class="form-control" @bind-Value="ContractTransactionTemplate.Price" />
+                        <ValidationMessage For="@(() => ContractTransactionTemplate.Price)" />
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </EditForm>
+            </VezaVITab>
+            @if (ContractTransactionTemplateID != Guid.Empty)
+            {
+                <VezaVITab Caption="Contract Template Designer" LoadOnFocus="false">
+                    <VezaRichEditor OnSave="OnSave">
+                        <Toolbar1>
+                            <select onchange="addUDF(this[this.selectedIndex].text, this[this.selectedIndex].value);this.selectedIndex=0;">
+                                <option class="heading" selected>Insert User Defined Field</option>
+                                @foreach (var udf in userFields)
+                                {
+                                    <option value="@udf.ID.ToString().ToLower()">@udf.FieldName</option>
+                                }
+                            </select>
+                            <select onchange="addClause(this[this.selectedIndex].text, this[this.selectedIndex].value);this.selectedIndex=0;">
+                                <option class="heading" selected>Insert Document Clause</option>
+                                @foreach (var clause in userClauses)
+                                {
+                                    <option value="@clause.ID.ToString().ToLower()">@clause.Code</option>
+                                }
+                            </select>
+                            <select onchange="addEntityClause(this[this.selectedIndex].text, this[this.selectedIndex].value);this.selectedIndex=0;">
+                                <option class="heading" selected>Insert Grouped Field Clause</option>
+                                @foreach (var clause in userEntityClauses)
+                                {
+                                    <option value="@clause.ContractTransactionEntityClauseID.ToString().ToLower()">@clause.ContractTransactionEntityName - @clause.ClauseName</option>
+                                }
+                            </select>
+                            <select onchange="addIndex();this.selectedIndex=0;">
+                                <option class="heading" selected>Document Indexes</option>
+                                <option value="1">Insert Document Index</option>
+                            </select>
+                        </Toolbar1>
+                    </VezaRichEditor>
+                </VezaVITab>
+                <VezaVITab Caption="Preview">
+                    <DocumentPreview ContractTransactionTemplateID="ContractTransactionTemplateID" />
+                </VezaVITab>
+            }
+        </VezaVITabControl>
+        <div class="form-group">
+            <button class="btn btn-primary" @onclick="Back">Back To Contract Transaction</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Guid _contractTransactionTemplateID = Guid.Empty;
+    [Parameter]
+    public Guid ContractTransactionTemplateID
+    {
+        get
+        {
+            return _contractTransactionTemplateID;
+        }
+        set
+        {
+            _contractTransactionTemplateID = value;
+        }
+    }
+
+    private ContractTransactionTemplate ContractTransactionTemplate { get; set; } = new ContractTransactionTemplate();
+    private ContractTemplateElement ContractTemplateElement { get; set; } = null;
+    public IEnumerable<string> Errors { get; set; } = new List<string>();
+    public List<ContractTransactionDataField> userFields = new List<ContractTransactionDataField>();
+    public List<ContractClause> userClauses = new List<ContractClause>();
+    public List<EditorEntityClause> userEntityClauses = new List<EditorEntityClause>();
+
+    private Guid ContractTransactionID { get; set; }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (ContractTemplateElement != null)
+        {
+            string value = ContractTemplateElement.TemplateText;
+            value = DocumentParser.ParseToDisplay(value, userFields, userClauses, new List<ContractTransactionEntityDataField>(), userEntityClauses);
+            await JS.InvokeAsync<string>("setDocText", value);
+        }
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var firmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+
+        var PagedFirmStyling = await FirmStylingService.GetAllAsync("ID", new List<VezaVIGridFilter>() {
+                    new VezaVIGridFilter() { Field = "FirmID", Value = firmID.ToString(), Equals = true }
+                });
+        if (PagedFirmStyling.Items.Count > 0)
+        {
+            Style = (MarkupString)PagedFirmStyling.Items[0].GenerateStyleSheet();
+        }
+
+        string contractTransactionID = string.Empty;
+        NavigationManager.TryGetQueryString<string>("ContractTransactionID", out contractTransactionID);
+        if (contractTransactionID != string.Empty)
+            ContractTransactionID = new Guid(contractTransactionID);
+        ContractTransactionTemplate = await ContractTemplateService.GetAsync(ContractTransactionTemplateID);
+
+        /*Load Elements*/
+        var elements = await ContractTemplateElementService.GetAllAsync("TemplateText", new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "ContractTransactionTemplateID", Value = ContractTransactionTemplateID.ToString(), Equals = true }
+        });
+        if (elements.Items != null)
+        {
+            ContractTemplateElement = elements.Items.FirstOrDefault();
+        }
+
+        var udfs = await ContractTransactionDataFieldService.GetAllAsync("FieldName", new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = contractTransactionID.ToString(), Equals = true }
+        });
+        userFields = udfs.Items;
+
+
+        var clauses = await ContractClauseService.GetAllAsync("Code", new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = firmID.ToString(), Equals = true }
+        });
+        userClauses = clauses.Items;
+
+        userEntityClauses = await EditorEntityClauseService.GetEditorEntityClauses(ContractTransactionID);
+    }
+
+    public async void SaveContractTemplate()
+    {
+        ContractTransactionTemplate.ContractTransactionID = ContractTransactionID;
+        Errors = new List<string>();
+        VezaAPISubmitResult result;
+        if (ContractTransactionTemplateID == Guid.Empty)
+        {
+            result = await ContractTemplateService.AddAsync(ContractTransactionTemplate);
+        }
+        else
+            result = await ContractTemplateService.UpdateAsync(ContractTransactionTemplate);
+        if (!result.Successful)
+        {
+            Errors = result.Errors;
+        }
+        else if (ContractTransactionTemplateID == Guid.Empty)
+        {
+            NavigationManager.NavigateTo($"/firmcontracttemplate/{result.EntityID}");
+        }
+        StateHasChanged();
+    }
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo($"/firmcontracttransaction/{ContractTransactionID}");
+    }
+
+    public async void OnSave(string value)
+    {
+        value = DocumentParser.ParseToSave(value, userFields, userClauses, new List<ContractTransactionEntityDataField>(), userEntityClauses);
+
+        foreach (var udf in userFields)
+        {
+            //var html = '<span id="' + udfID + '" class="vi-editor-udf" contenteditable=false>' + udfName + '</span>';
+            value = value.Replace($"<span id=\"{udf.ID.ToString().ToLower()}\" class=\"vi-editor-udf\" contenteditable=\"false\">{udf.FieldName}</span>", $"[UDF:{udf.ID}]");
+        }
+        foreach (var clause in userClauses)
+        {
+            //var html = '<span id="' + udfID + '" class="vi-editor-udf" contenteditable=false>' + udfName + '</span>';
+            value = value.Replace($"<span id=\"{clause.ID.ToString().ToLower()}\" class=\"vi-editor-clause\" contenteditable=\"false\">Document Clause: {clause.Code}</span>", $"[CLAUSE:{clause.ID}]");
+        }
+
+        //userEntityClauses
+
+        if (ContractTemplateElement == null)
+        {
+            ContractTemplateElement = new ContractTemplateElement()
+            {
+                ID = Guid.NewGuid(),
+                TemplateText = value,
+                ContractTransactionTemplateID = ContractTransactionTemplateID
+            };
+            var result = await ContractTemplateElementService.AddAsync(ContractTemplateElement);
+        }
+        else
+        {
+            ContractTemplateElement.ContractTransactionTemplateID = ContractTransactionTemplateID;
+            ContractTemplateElement.TemplateText = value;
+            var result = await ContractTemplateElementService.UpdateAsync(ContractTemplateElement);
+        }
+    }
+
+    private MarkupString Style { get; set; }
+
+}

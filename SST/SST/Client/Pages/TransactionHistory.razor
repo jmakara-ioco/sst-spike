@@ -1,0 +1,24 @@
+﻿@page "/transactionhistory"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = RoleConstants.SystemAdministrator)]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@namespace SST.Client
+
+<div class="card">
+    <div class="card-body">
+        <MaintenanceGrid TItem="InvoiceHeader" Caption="Transaction History" Description="Transaction History" DefaultPageSize="10" ShowAddButton="false" ShowEditButton="false" ShowDeleteButton="false">
+            <Columns>
+                <MaintenanceGridColumn Caption="Invoice Date" PropertyName="InvoiceDate" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Currency" PropertyName="Currency" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Invoiced To" PropertyName="InvoicedTo" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Nr Of Users" PropertyName="NrOfUsers" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Transaction Number" PropertyName="TransactionNumber" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Invoice Number" PropertyName="InvoiceNumber" AllowSort="true" />
+            </Columns>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code
+{
+
+}

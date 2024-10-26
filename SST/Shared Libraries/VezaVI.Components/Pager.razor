@@ -1,0 +1,43 @@
+﻿@if (TotalPages > 1)
+{
+    <div class="float-left pager">
+        <button type="button" class="btn btn-primary" disabled="@((PageIndex == 1) ? "disabled" : null)" @onclick="@(() => OnClick.InvokeAsync(1))">
+            <span class="oi oi-media-step-backward"></span>
+        </button>
+        <button type="button" class="btn btn-primary" disabled="@(HasPreviousPage ? null : "disabled")" @onclick="@(() => OnClick.InvokeAsync(PageIndex - 1))">
+            <span class="oi oi-caret-left"></span>
+        </button>
+        <span>@PageIndex</span>
+        <button type="button" class="btn btn-primary" disabled="@(HasNextPage ? null : "disabled")" @onclick="@(() => OnClick.InvokeAsync(PageIndex + 1))">
+            <span class="oi oi-caret-right"></span>
+        </button>
+        <button type="button" class="btn btn-primary" disabled="@((PageIndex == TotalPages) ? "disabled" : null)" @onclick="@(() => OnClick.InvokeAsync(TotalPages))">
+            <span class="oi oi-media-step-forward"></span>
+        </button>
+    </div>
+}
+
+<style>
+    .pager button, .pager span {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int PageIndex { get; set; }
+
+    [Parameter]
+    public int TotalPages { get; set; }
+
+    [Parameter]
+    public bool HasPreviousPage { get; set; }
+
+    [Parameter]
+    public bool HasNextPage { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnClick { get; set; }
+
+}

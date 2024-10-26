@@ -1,0 +1,63 @@
+﻿@namespace VezaVI.Light.Components
+
+<button @onclick="OnClick" disabled="@Disabled" title="@Title">
+    <span class="oi @IconCss"></span>
+</button>
+
+@code {
+    [CascadingParameter]
+    public DocumentBuilderCanvas Canvas { get; set; }
+    [Parameter]
+    public ConfigType Key { get; set; }
+    [Parameter]
+    public string Value { get; set; }
+    [Parameter]
+    public string IconCss { get; set; }
+    [Parameter]
+    public string Title { get; set; }
+
+    private bool Disabled
+    {
+        get
+        {
+            var configs = Canvas.SelectedElement.GetConfigs();
+            if (configs.ContainsKey(Key))
+                return false;
+            return true;
+        }
+    }
+
+    private void OnClick()
+    {
+        if (Canvas.SelectedElement != null)
+        {
+            Canvas.SetSelectedElementConfig(Key, ValueIncDec());
+        }
+    }
+
+    private string ValueIncDec()
+    {
+        var attribute = Canvas.SelectedElement.GetAttributes().FirstOrDefault(x => x.AllowedType == Key);
+        var elementValue = Canvas.SelectedElement.GetConfigValues().FirstOrDefault(x => x.Key == Key);
+
+        if (Value == "increase")
+        {
+            var intVal = VezaVIUtils.CastToInt32(elementValue.Value?.Replace($"{Key.ToString().ToLower()}-", "")) + 1;
+            if (intVal > attribute.MaxValue)
+                intVal = attribute.MaxValue;
+            return $"{Key.ToString().ToLower()}-{intVal}";
+        }
+        else if (Value == "decrease")
+        {
+            var intVal = VezaVIUtils.CastToInt32(elementValue.Value?.Replace($"{Key.ToString().ToLower()}-", "")) - 1;
+            if (intVal < attribute.MinValue)
+                intVal = attribute.MinValue;
+            return $"{Key.ToString().ToLower()}-{intVal}";
+        }
+        else
+        {
+            return Value;
+        }
+    }
+
+}

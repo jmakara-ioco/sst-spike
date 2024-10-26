@@ -1,0 +1,30 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject ITenantHelperService TenantHelperService
+
+<div class="main">
+    @Body
+</div>
+
+@code {
+
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Guid tenantID = await TenantHelperService.GetTenant();
+        if (tenantID != Guid.Empty)
+        {
+            var branding = await TenantHelperService.GetBranding(tenantID);
+            if (branding != null)
+                await branding.ActivateBranding(JSRuntime, NavigationManager);
+        }
+        else
+        {
+            FirmStyling styling = new FirmStyling();
+            await styling.ActivateBranding(JSRuntime, NavigationManager);
+        }
+    }
+
+}

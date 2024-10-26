@@ -1,0 +1,54 @@
+﻿@inject IModalService ModalService
+
+<div class="vi-grid-tile" style="background-image: url(@Base64Background)" @onclick:preventDefault @onclick="OnTileClicked">
+    <div class="vi-grid-tile-heading">
+        @Caption
+        <span class="vi-round-icon" @onclick:stopPropagation @onclick:preventDefault @onclick="ShowMsg"><span class="oi oi-info"></span></span>
+    </div>
+    @if (PriceInfo != string.Empty)
+    {
+        <div class="vi-grid-tile-footer">
+            @PriceInfo
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid ID { get; set; }
+    [Parameter]
+    public string Caption { get; set; }
+    [Parameter]
+    public string Base64Background { get; set; }
+    [Parameter]
+    public string Information { get; set; }
+    [Parameter]
+    public EventCallback<TileClickEvent> OnClick { get; set; }
+    [Parameter]
+    public string PriceInfo { get; set; } = string.Empty;
+
+    private void OnTileClicked()
+    {
+        if (!msgClicked)
+        {
+            if (OnClick.HasDelegate)
+                OnClick.InvokeAsync(new TileClickEvent(ID));
+        }
+    }
+
+    private bool msgClicked = false;
+    public void ShowMsg()
+    {
+        try
+        {
+            msgClicked = true;
+            ModalParameters param = new ModalParameters();
+            param.Add("Message", Information);
+            ModalService.Show(typeof(MsgBox), "Information", param);
+        }
+        finally
+        {
+            msgClicked = false;
+        }
+    }
+}

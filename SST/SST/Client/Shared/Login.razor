@@ -1,0 +1,71 @@
+@page "/login"
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@layout EmptyLayout
+
+<div class="login centerscreen">
+    <div class="large-logo">
+    </div>
+    <div class="card">
+        @if (ShowErrors)
+        {
+            <div class="alert alert-danger" role="alert">
+                <p>@Error</p>
+            </div>
+        }
+        <div class="card-body">
+
+            <h5 class="card-title">Log in to use the doc-n-abler platform</h5>
+            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <InputText Id="email" Class="form-control" @bind-Value="loginModel.Email" />
+                    <ValidationMessage For="@(() => loginModel.Email)" />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <InputText Id="password" type="password" Class="form-control" @bind-Value="loginModel.Password" />
+                    <ValidationMessage For="@(() => loginModel.Password)" />
+                </div>
+                <button type="submit" class="btn btn-primary">Sign In</button>
+                <p>Don't have an account? <a href="/register">Register Here</a>.</p>
+                <p>Forgot your password? <a href="/forgotpassword">Reset it here</a>.</p>
+            </EditForm>
+        </div>
+    </div>
+</div>
+    
+
+        @code {
+
+            private LoginModel loginModel = new LoginModel();
+            private bool ShowErrors;
+            private string Error = "";
+
+            private async Task HandleLogin()
+            {
+                ShowErrors = false;
+
+                var result = await AuthService.Login(loginModel);
+
+                if (result.Successful)
+                {
+                    NavigationManager.NavigateTo("/");
+                }
+                else
+                {
+                    if (result.Errors.FirstOrDefault() == "Password Expired")
+                    {
+                        NavigationManager.NavigateTo("/changepasswordlogin");
+                    }
+                    else
+                    {
+                        Error = result.Errors.FirstOrDefault();
+                        ShowErrors = true;
+                    }
+                }
+            }
+        }

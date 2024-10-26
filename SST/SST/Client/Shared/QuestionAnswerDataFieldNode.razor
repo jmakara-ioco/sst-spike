@@ -1,0 +1,101 @@
+﻿@inject IVezaDataService<ContractQuestionAnswerDataField> ContractQuestionAnswerDataFieldService
+@implements IDisposable
+
+<div class="vi-multi-item-textbox">
+    @foreach (var item in SelectedItems)
+    {
+        <span class="vi-multi-item">@item.DisplayText<span class="vi-multi-item-cancel" @onclick="@(() => TryRemove(item))">x</span></span>
+    }
+    <input type="text" class="vi-multi-item-input" placeholder="@NullText" oninput="this.blur(); this.focus();"
+           @bind="@SelectedText"
+           @onblur="@(ev => TryAutoComplete(ev))"
+           @onfocus="@(ev => TryAutoComplete(ev))">
+    <div class="dropdown-menu dropdown-menu-right scrollable-menu @(_isOpen ? "show" : "")" style="width: 100%;">
+        <span class="vi-question-tree-item-cancel" @onclick="@(() => _isOpen = false)">X</span>
+        <h6 class="dropdown-header">@DisplayItems.Count item(s)</h6>
+        @foreach (var item in DisplayItems)
+        {
+            <a class="dropdown-item"
+               @onclick="@(() => TrySelect(item))">
+                @((MarkupString) item.DisplayText)
+            </a>
+        }
+    </div>
+</div>
+
+@code {
+
+    public void Dispose()
+    {
+    }
+
+
+    [Parameter]
+    public Guid QuestionAnswerID { get; set; }
+    [Parameter]
+    public Guid ContractTypeID { get; set; }
+    [Parameter]
+    public string NullText { get; set; }
+    [CascadingParameter]
+    public QuestionNodeTreeBuilder TreeBuilder { get; set; }
+
+    private bool _isOpen = false;
+    public string SelectedText { get; set; } = string.Empty;
+
+    public List<VezaMultiItem> Items { get; set; } = new List<VezaMultiItem>();
+    public List<VezaMultiItem> SelectedItems { get; set; } = new List<VezaMultiItem>();
+    public List<VezaMultiItem> DisplayItems { get; set; } = new List<VezaMultiItem>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var items = TreeBuilder.GetAllDataFields();
+        if (items != null)
+            Items = items.Select(x => new VezaMultiItem() { Key = x.ID, DisplayText = x.FieldName }).ToList();
+
+        var questionDataFields = await ContractQuestionAnswerDataFieldService.GetAllAsync("ID", new List<VezaVIGridFilter>()
+{
+            new VezaVIGridFilter() { Field = "AnswerID", Value = QuestionAnswerID.ToString(), Equals = true }
+        });
+        var selectedItems = questionDataFields.Items;
+        if (selectedItems != null)
+            SelectedItems = selectedItems.Select(x => new VezaMultiItem() { Key = x.ID, DisplayText = items.FirstOrDefault(y => y.ID == x.ContractTransactionDataFieldID).FieldName }).ToList();
+    }
+
+    public async void TrySelect(VezaMultiItem item)
+    {
+        /*SAve*/
+        var result = await ContractQuestionAnswerDataFieldService.AddAsync(new ContractQuestionAnswerDataField()
+        {
+            AnswerID = QuestionAnswerID,
+            ContractTransactionDataFieldID = item.Key
+        });
+        if (result.Successful)
+        {
+            SelectedItems.Add(new VezaMultiItem()
+            {
+                Key = new Guid(result.EntityID.ToString()),
+                DisplayText = Items.FirstOrDefault(y => y.Key == item.Key).DisplayText
+            });
+            SelectedText = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    public async void TryRemove(VezaMultiItem item)
+    {
+        /*Delete*/
+        var result = await ContractQuestionAnswerDataFieldService.DeleteAsync(item.Key);
+        if (result.Successful)
+        {
+            SelectedItems.Remove(item);
+            StateHasChanged();
+        }
+    }
+
+    private void TryAutoComplete(FocusEventArgs ev)
+    {
+        _isOpen = true;
+        DisplayItems = Items.Where(x => x.DisplayText.Contains(SelectedText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+
+}

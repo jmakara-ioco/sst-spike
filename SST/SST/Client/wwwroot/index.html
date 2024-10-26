@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>doc-n-abler.biz</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css?v=1" rel="stylesheet" />
+    <link href="SST.Client.styles.css" rel="stylesheet" />
+    <link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link href="_content/VezaVI.Light.Components/VezaVI-Components.css?v=1" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="app">
+        <div class="loader">
+            <div class="icon-loader">
+
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js?v=1"></script>
+    <script src="_framework/blazor.webassembly.js?v=1"></script>
+    <script src="inputfile.js?v=1"></script>
+    <script src="ServiceWorkerRegister.js?v=1"></script>
+    <script src="EditorMethods.js?v=1"></script>
+    <script src="_content/Blazored.Modal/blazored.modal.js?v=1"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+
+    <script>
+        window.JsLib = {
+            getInnerHtml: function (element) {
+                console.log(element);
+                return element.innerHTML;
+            }
+        };
+
+        function SetPropertyValue(propertyName, value) {
+            var bodyStyles = document.body.style;
+            bodyStyles.setProperty(propertyName, value);
+        }
+    </script>
+
+</body>
+
+</html>

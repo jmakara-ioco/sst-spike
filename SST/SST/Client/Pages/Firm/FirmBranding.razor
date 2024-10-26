@@ -1,0 +1,389 @@
+﻿@page "/firmbranding"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@namespace SST.Client
+@inject IVezaDataService<FirmStyling> FirmStylingService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider Provider
+@inject ITenantHelperService TenantHelperService
+@inject HttpClient HttpClient
+
+<div class="card">
+    @if (ShowErrors)
+    {
+        <div class="alert alert-danger" role="alert">
+            <p>@Error</p>
+        </div>
+    }
+    <div class="card-body">
+
+        <h5 class="card-title">Manage your branding</h5>
+        <EditForm Model="firmStyling" OnValidSubmit="Update">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <VezaVITabControl>
+                <VezaVITab Caption="Branding" LoadOnFocus="false">
+                    <div class="form-group">
+                        <label for="Logo">Logo</label>
+                        <div class="drag-drop-zone">
+                            <InputFile OnChange="ViewLogo" MaxBufferSize="@MaxFileSize" id="Logo" />
+                            @statusLogo
+                        </div>
+                        @if (FirmID != Guid.Empty)
+                        {
+                            <img style="max-width: 100%;" src="api/uploads/@FirmID-Logo.png" />
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label for="Background">Background Image</label>
+                        <div class="drag-drop-zone">
+                            <InputFile OnChange="ViewBackground" MaxBufferSize="@MaxFileSize" id="Background" />
+                            @statusBackground
+                        </div>
+                        @if (FirmID != Guid.Empty)
+                        {
+                            <img style="max-width: 100%;" src="api/uploads/@FirmID-Bg.png" />
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label for="ButtonFontColor">Button Font Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.ButtonFontColor" style="width:85%;" id="ButtonFontColor">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ButtonColor">Button Background Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.ButtonColor" style="width:85%;" id="ButtonColor">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="HeadingColor">Heading Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.HeadingColor" style="width:85%;" id="HeadingColor">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="MenuHeadingColor">Menu Heading Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.MenuHeadingColor" style="width:85%;" id="MenuHeadingColor">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="MenuFontColor">Menu Font Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.MenuFontColor" style="width:85%;" id="MenuFontColor">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="MenuBackgroundColor">Menu Background Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.MenuBackgroundColor" style="width:85%;" id="MenuBackgroundColor">
+                        </div>
+                    </div>
+                </VezaVITab>
+                <VezaVITab Caption="Document Builder Settings" LoadOnFocus="false">
+                    <div class="form-group">
+                        <label for="Font">Font</label>
+                        <select Id="Font" Class="form-control" @bind="firmStyling.Font">
+                            <option value="">Select a Font</option>
+                            @foreach (var font in fonts)
+                            {
+                            <option value="@font">@font</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="H1Colour">Header 1 Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.H1Colour" style="width:85%;" id="H1Colour">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="H1Size">Header 1 Font Size</label>
+                        <div>
+                            <input type="number" step="1" min="8" max="32" @bind-value="firmStyling.H1Size" style="width:85%;" id="H1Size">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="H2Colour">Header 2 Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.H2Colour" style="width:85%;" id="H2Colour">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="H2Size">Header 2 Font Size</label>
+                        <div>
+                            <input type="number" step="1" min="8" max="32" @bind-value="firmStyling.H2Size" style="width:85%;" id="H2Size">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="H3Colour">Header 3 Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.H3Colour" style="width:85%;" id="H3Colour">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="H3Size">Header 3 Font Size</label>
+                        <div>
+                            <input type="number" step="1" min="8" max="32" @bind-value="firmStyling.H3Size" style="width:85%;" id="H3Size">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="LineSpacing">Line Spacing</label>
+                        <div>
+                            <input type="number" step="1" min="0" @bind-value="firmStyling.LineSpacing" style="width:85%;" id="LineSpacing">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ParagraphPadding">Paragraph Padding</label>
+                        <div>
+                            <input type="number" step="1" min="0" max="20" @bind-value="firmStyling.ParagraphPadding" style="width:85%;" id="ParagraphPadding">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ParColour">Paragraph Colour</label>
+                        <div>
+                            <input type="color" @bind-value="firmStyling.ParColour" style="width:85%;" id="ParColour">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ParSize">Paragraph Font Size</label>
+                        <div>
+                            <input type="number" step="1" min="8" max="32" @bind-value="firmStyling.ParSize" style="width:85%;" id="ParSize">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="HeaderLeft">Automatic Numbering Format</label>
+                        <select Id="HeaderLeft" Class="form-control" @bind="firmStyling.IndentSetting">
+                            <option value="0">Default Numbering E.g. 1., 1.1, 1.1.1, etc</option>
+                            <option value="1">Roman Lowercase E.g. i, ii, iii, iv, v, etc</option>
+                            <option value="2">Roman Uppercase E.g. I, II, III, IV, V, etc</option>
+                            <option value="3">Alpha Lowercase E.g. a, b, c, … z</option>
+                            <option value="4">Alpha Uppercase E.g. A, B, C, … Z</option>
+                        </select>
+                    </div>
+                </VezaVITab>
+                <VezaVITab Caption="PDF Header and Footer Settings" LoadOnFocus="false">
+                    <div class="form-group">
+                        <label for="ShowHeaderLine">Show Header Line</label>
+                        <label class="switch">
+                            <InputCheckbox id="ShowHeaderLine" Class="form-control" @bind-Value="firmStyling.ShowHeaderLine"></InputCheckbox>
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="ShowFooterLine">Show Footer Line</label>
+                        <label class="switch">
+                            <InputCheckbox id="ShowFooterLine" Class="form-control" @bind-Value="firmStyling.ShowFooterLine"></InputCheckbox>
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="HeaderHeight">Header Height</label>
+                        <div>
+                            <input type="number" step="1" min="10" max="30" Class="form-control" @bind-value="firmStyling.HeaderHeight" id="HeaderHeight">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="FooterHeight">Footer Height</label>
+                        <div>
+                            <input type="number" step="1" min="10" max="30" Class="form-control" @bind-value="firmStyling.FooterHeight" id="FooterHeight">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="HeaderLeft">PDF Header Left Display</label>
+                        <select Id="HeaderLeft" Class="form-control" @bind="firmStyling.HeaderLeft">
+                            <option value="0">None</option>
+                            <option value="1">Page Numbers</option>
+                            <option value="2">Date and Time</option>
+                            <option value="3">Company Name</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="HeaderCenter">PDF Header Center Display</label>
+                        <select Id="HeaderCenter" Class="form-control" @bind="firmStyling.HeaderCenter">
+                            <option value="0">None</option>
+                            <option value="1">Page Numbers</option>
+                            <option value="2">Date and Time</option>
+                            <option value="3">Company Name</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="HeaderRight">PDF Header Right Display</label>
+                        <select Id="HeaderRight" Class="form-control" @bind="firmStyling.HeaderRight">
+                            <option value="0">None</option>
+                            <option value="1">Page Numbers</option>
+                            <option value="2">Date and Time</option>
+                            <option value="3">Company Name</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="FooterLeft">PDF Footer Left Display</label>
+                        <select Id="FooterLeft" Class="form-control" @bind="firmStyling.FooterLeft">
+                            <option value="0">None</option>
+                            <option value="1">Page Numbers</option>
+                            <option value="2">Date and Time</option>
+                            <option value="3">Company Name</option>
+                            <option value="4">Logo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="FooterCenter">PDF Footer Center Display</label>
+                        <select Id="FooterCenter" Class="form-control" @bind="firmStyling.FooterCenter">
+                            <option value="0">None</option>
+                            <option value="1">Page Numbers</option>
+                            <option value="2">Date and Time</option>
+                            <option value="3">Company Name</option>
+                            <option value="4">Logo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="FooterRight">PDF Footer Right Display</label>
+                        <select Id="FooterRight" Class="form-control" @bind="firmStyling.FooterRight">
+                            <option value="0">None</option>
+                            <option value="1">Page Numbers</option>
+                            <option value="2">Date and Time</option>
+                            <option value="3">Company Name</option>
+                            <option value="4">Logo</option>
+                        </select>
+                    </div>
+                </VezaVITab>
+            </VezaVITabControl>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid TemplateID { get; set; }
+
+    public Guid FirmID = Guid.Empty;
+
+    public FirmStyling firmStyling = new FirmStyling();
+    public bool newRecord = true;
+
+    const string DefaultStatus = "Click to choose a file";
+    const int MaxFileSize = 5 * 1024 * 1024; // 5MB
+
+    string statusLogo = DefaultStatus;
+    string statusBackground = DefaultStatus;
+    string logoImg;
+    string backgroundImg;
+
+    private bool ShowErrors;
+    private string Error = "";
+    List<string> fonts = new List<string>();
+
+    async Task ViewLogo(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            return;
+        }
+        else if (file.Size > MaxFileSize)
+        {
+            statusLogo = $"That's too big. Max size: {MaxFileSize} bytes.";
+        }
+        else
+        {
+            statusLogo = "Loading...";
+
+            byte[] buffer = new byte[0x1000];
+            byte[] fileBytes = new byte[0];
+            int numRead;
+            using var stream = file.OpenReadStream(MaxFileSize);
+            while ((numRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+            {
+                fileBytes = fileBytes.Concat(buffer).ToArray();
+            }
+            statusLogo = DefaultStatus;
+
+            var content = new MultipartFormDataContent {
+                { new ByteArrayContent(fileBytes), "\"upload\"", $"{FirmID}-Logo.png" }
+            };
+            await HttpClient.PostAsync("api/uploads", content);
+
+        }
+    }
+
+    async Task ViewBackground(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            return;
+        }
+        else if (file.Size > MaxFileSize)
+        {
+            statusBackground = $"That's too big. Max size: {MaxFileSize} bytes.";
+        }
+        else
+        {
+            statusBackground = "Loading...";
+
+            byte[] buffer = new byte[0x1000];
+            byte[] fileBytes = new byte[0];
+            int numRead;
+            using var stream = file.OpenReadStream(MaxFileSize);
+            while ((numRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+            {
+                fileBytes = fileBytes.Concat(buffer).ToArray();
+            }
+            var content = new MultipartFormDataContent {
+                { new ByteArrayContent(fileBytes), "\"upload\"", $"{FirmID}-Bg.png" }
+            };
+            await HttpClient.PostAsync("api/uploads", content);
+            statusBackground = DefaultStatus;
+        }
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var state = await Provider.GetAuthenticationStateAsync();
+        if (state.User != null)
+        {
+            if (state.User.HasClaim(x => x.Type == "CompanyID"))
+            {
+                FirmID = new Guid(state.User.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+            }
+        }
+        var PagedFirmStyling = await FirmStylingService.GetAllAsync("ID", new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = FirmID.ToString(), Equals = true }
+        });
+        if (PagedFirmStyling.Items.Count > 0)
+        {
+            newRecord = false;
+            firmStyling = PagedFirmStyling.Items[0];
+        }
+        fonts = await TenantHelperService.GetAllFonts();
+    }
+
+    private async Task Update()
+    {
+        ShowErrors = false;
+        var result = new VezaAPISubmitResult();
+        firmStyling.FirmID = FirmID;
+        if (newRecord == false)
+        {
+            result = await FirmStylingService.UpdateAsync(firmStyling);
+        }
+        else
+        {
+            result = await FirmStylingService.AddAsync(firmStyling);
+        }
+
+        if (result.Successful)
+        {
+            await TenantHelperService.ResetBranding();
+            NavigationManager.NavigateTo("/firmbranding");
+        }
+        else
+        {
+            Error = result.Errors.FirstOrDefault();
+            ShowErrors = true;
+        }
+    }
+
+}

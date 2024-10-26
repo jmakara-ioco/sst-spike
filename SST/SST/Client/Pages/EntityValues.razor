@@ -1,0 +1,15 @@
+﻿<VezaVITileControl Columns="2">
+    @for (int i = 1; i <= NrOfEntities; i++)
+    {
+        <EntityValue Entity="Entity" Level="i" Simulation="Simulation" />
+    }
+</VezaVITileControl>
+
+@code {
+    [Parameter]
+    public int NrOfEntities { get; set; }
+    [Parameter]
+    public QuestionEntityToken Entity { get; set; }
+    [Parameter]
+    public QuestionSimulation Simulation { get; set; }
+}

@@ -1,0 +1,25 @@
+﻿<VezaVITile Columns="1">
+    <p>@($"{Entity.Name} {Level}")</p>
+    @{
+        var entity = Simulation.Entities.FirstOrDefault(x => x.EntityID == Entity.EntityID);
+        foreach (var field in entity.DataFields)
+        {
+            foreach (var udf in Entity.DataFields)
+            {
+                if (field.DataFieldID == udf.DataFieldID)
+                {
+                    <UDFValues UDF="field" Level="Level" DisplayText="@udf.DisplayText" />
+                }
+            }
+        }
+    }
+</VezaVITile>
+
+@code {
+    [Parameter]
+    public int Level { get; set; }
+    [Parameter]
+    public QuestionEntityToken Entity { get; set; }
+    [Parameter]
+    public QuestionSimulation Simulation { get; set; }
+}

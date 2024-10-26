@@ -1,0 +1,95 @@
+﻿@page "/firmprofile"
+@inject NavigationManager NavigationManager
+@layout MainLayout
+@inject ILocalStorageService LocalStorage
+@inject HttpClient HttpClient
+@inject IFirmService FirmService
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = RoleConstants.FirmAdministrator)]
+@namespace SST.Client
+
+<div class="card">
+    @if (ShowErrors)
+    {
+        <div class="alert alert-danger" role="alert">
+            <p>@Error</p>
+        </div>
+    }
+    <EditForm Model="firmModel" OnValidSubmit="Update">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="card-body">
+            <h5>Manage your Company Information</h5>
+            <div class="form-group">
+                <label for="FirmName">Firm Name</label>
+                <InputText Id="FirmName" Class="form-control" @bind-Value="firmModel.FirmName" />
+                <ValidationMessage For="@(() => firmModel.FirmName)" />
+            </div>
+            <div class="form-group">
+                <label for="ContactNumber">Contact Number</label>
+                <InputText Id="ContactNumber" Class="form-control" @bind-Value="firmModel.ContactNumber"></InputText>
+                <ValidationMessage For="@(() => firmModel.ContactNumber)" />
+            </div>
+            <div class="form-group">
+                <label for="RegistrationNumber">Registration Number</label>
+                <InputText Id="RegistrationNumber" Class="form-control" @bind-Value="firmModel.RegistrationNumber" />
+                <ValidationMessage For="@(() => firmModel.RegistrationNumber)" />
+            </div>
+            <div class="form-group">
+                <label for="VatNumber">Vat Number</label>
+                <InputText Id="VatNumber" Class="form-control" @bind-Value="firmModel.VatNumber" />
+                <ValidationMessage For="@(() => firmModel.VatNumber)" />
+            </div>
+
+            <h5>Manage your Company Address</h5>
+            <AddressEditor Address="firmModel.Address" />
+            <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+
+    private FirmModel firmModel = new FirmModel() { Address = new Address() };
+    private bool ShowErrors;
+    private string Error = "";
+
+    protected async override Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var tokenResult = await LocalStorage.GetItemAsync<string>("authToken");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"api/GetFirmProfile");
+        request.Headers.Authorization = new AuthenticationHeaderValue("bearer", tokenResult);
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            var resultstr = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrEmpty(resultstr))
+            {
+                firmModel = JsonSerializer.Deserialize<FirmModel>(resultstr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task Update()
+    {
+        ShowErrors = false;
+
+        var result = await FirmService.UpdateFirmSettings(firmModel);
+
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Error = result.Errors.FirstOrDefault();
+            ShowErrors = true;
+        }
+    }
+
+}

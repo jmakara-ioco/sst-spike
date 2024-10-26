@@ -1,0 +1,168 @@
+﻿@page "/firmcontracttransactionentity"
+@page "/firmcontracttransactionentity/{contracttransactionentityid:guid}"
+@inject IVezaDataService<ContractTransactionEntity> ContractTransactionEntityService
+@inject NavigationManager NavigationManager
+@namespace SST.Client
+
+<div class="card">
+    @if (Errors.Count() > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var error in Errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+<div class="card-body">
+    <VezaVITabControl>
+        <VezaVITab Caption="Group Info">
+            <EditForm Model="entity" OnValidSubmit="SaveContractClause" Context="item">
+                <div class="form-group">
+                    <label for="Name">Name</label>
+                    <InputText Id="Name" Class="form-control" @bind-Value="entity.Name" />
+                    <ValidationMessage For="@(() => entity.Name)" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </EditForm>
+        </VezaVITab>
+        @if (ContractTransactionEntityID != Guid.Empty)
+        {
+            <VezaVITab Caption="Data Fields">
+                <MaintenanceGrid TItem="ContractTransactionEntityDataField" Description="Data Field" DefaultPageSize="10" GridFilter="filters" OnModalSubmit="OnClose">
+                    <Columns>
+                        <MaintenanceGridColumn Caption="Field Name" PropertyName="FieldName" AllowSort="true" />
+                        <MaintenanceGridColumn Caption="Question Text" PropertyName="DisplayText" AllowSort="true" />
+                        <MaintenanceGridColumn Caption="Type of Field" PropertyName="TypeOfField" AllowSort="true">
+                            <Template Context="item">
+                                <td>@((DataFieldType)item.TypeOfField)</td>
+                            </Template>
+                        </MaintenanceGridColumn>
+                    </Columns>
+                    <ModalContent Context="item">
+                        <div class="form-group">
+                            <label for="FieldName">Field Name</label>
+                            <InputText Id="FieldName" Class="form-control" @bind-Value="item.FieldName" />
+                            <ValidationMessage For="@(() => item.FieldName)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="DisplayText">Question / Display Text</label>
+                            <InputText Id="DisplayText" Class="form-control" @bind-Value="item.DisplayText" />
+                            <ValidationMessage For="@(() => item.DisplayText)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="TypeOfField">Type of Field</label>
+                            <select Id="TypeOfField" Class="form-control" @bind="item.TypeOfField">
+                                <option value="0">Text Field</option>
+                                <option value="1">Numeric Field</option>
+                                <option value="2">Boolean Field</option>
+                            </select>
+                            <ValidationMessage For="@(() => item.TypeOfField)" />
+                        </div>
+                    </ModalContent>
+                </MaintenanceGrid>
+            </VezaVITab>
+            <VezaVITab Caption="Group Clauses">
+                <MaintenanceGrid TItem="ContractTransactionEntityClause" EditUrl="firmcontractentityclause" Description="Entity Clause" DefaultPageSize="10" GridFilter="filters" OnBeforeUrlNavigate="BeforeUrlNavigate">
+                    <Columns>
+                        <MaintenanceGridColumn Caption="Clause Code" PropertyName="Code" AllowSort="true" />
+                    </Columns>
+                </MaintenanceGrid>
+            </VezaVITab>
+
+        }
+    </VezaVITabControl>
+    @if (ContractTransactionID != Guid.Empty)
+    {
+        <div class="form-group">
+            <button class="btn btn-primary" @onclick="Back">Back To Contract Transaction</button>
+        </div>
+    }
+</div>
+</div>
+
+@code {
+
+    private Guid _contractTransactionEntityID = Guid.Empty;
+    [Parameter]
+    public Guid ContractTransactionEntityID
+    {
+        get
+        {
+            return _contractTransactionEntityID;
+        }
+        set
+        {
+            _contractTransactionEntityID = value;
+        }
+    }
+
+    private Guid ContractTransactionID { get; set; } = Guid.Empty;
+
+    private ContractTransactionEntity entity { get; set; } = new ContractTransactionEntity();
+    public IEnumerable<string> Errors { get; set; } = new List<string>();
+    List<VezaVIGridFilter> filters = new List<VezaVIGridFilter>() {
+        new VezaVIGridFilter() { Field = "ContractTransactionEntityID", Value = Guid.Empty.ToString(), Equals = true }
+    };
+
+    public async override Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+        filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "ContractTransactionEntityID", Value = _contractTransactionEntityID.ToString(), Equals = true }
+        };
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        entity = await ContractTransactionEntityService.GetAsync(ContractTransactionEntityID);
+
+        string contractTransactionID = string.Empty;
+        if (NavigationManager.Uri.Contains("ContractTransactionID"))
+        {
+            NavigationManager.TryGetQueryString<string>("ContractTransactionID", out contractTransactionID);
+            if (contractTransactionID != string.Empty)
+                ContractTransactionID = new Guid(contractTransactionID);
+        }
+    }
+
+    public async Task SaveContractClause()
+    {
+        entity.ContractTransactionID = ContractTransactionID;
+        Errors = new List<string>();
+        VezaAPISubmitResult result;
+        if (ContractTransactionEntityID == Guid.Empty)
+        {
+            result = await ContractTransactionEntityService.AddAsync(entity);
+        }
+        else
+            result = await ContractTransactionEntityService.UpdateAsync(entity);
+        if (!result.Successful)
+        {
+            Errors = result.Errors;
+        }
+        else if (ContractTransactionEntityID == Guid.Empty)
+        {
+            NavigationManager.NavigateTo($"/firmcontracttransactionentity/{result.EntityID}");
+        }
+        StateHasChanged();
+    }
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo($"/firmcontracttransaction/{ContractTransactionID}");
+    }
+
+    private void OnClose(VezaModalSubmitEventArgs<ContractTransactionEntityDataField> args)
+    {
+        args.Item.ContractTransactionEntityID = ContractTransactionEntityID;
+        args.AllowClose = true;
+    }
+
+    private void BeforeUrlNavigate(VezaUrlEventArgs e)
+    {
+        e.Url += $"?ContractTransactionEntityID={ContractTransactionEntityID}";
+    }
+}

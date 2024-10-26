@@ -1,0 +1,63 @@
+﻿<CascadingValue Value="this">
+    @if (Tabs.Count > 1)
+    {
+        <div class="vi-tab-header">
+            @foreach (var tab in Tabs)
+            {
+                <div class="@TabClass(tab)" @onclick="() => ActivateTab(tab)">@tab.Caption</div>
+            }
+        </div>
+    }
+    else if (Tabs.Count > 0)
+    {
+        <h3>@Tabs.FirstOrDefault().Caption</h3>
+    }
+    @ChildContent
+</CascadingValue>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public string AdditionalActiveCSS { get; set; } = string.Empty;
+    [Parameter]
+    public string AdditionalCSS { get; set; } = string.Empty;
+
+    private List<VezaVITab> Tabs = new List<VezaVITab>();
+
+    public void AddTab(VezaVITab tab)
+    {
+        Tabs.Add(tab);
+        if (ActiveTab == null)
+            ActiveTab = tab;
+        StateHasChanged();
+    }
+
+    public void RemoveTab(VezaVITab tab)
+    {
+        Tabs.Remove(tab);
+        StateHasChanged();
+    }
+
+    private VezaVITab ActiveTab { get; set; } = null;
+    public bool IsActiveTab(VezaVITab tab)
+    {
+        return (ActiveTab == tab);
+    }
+
+    public void ActivateTab(VezaVITab tab)
+    {
+        ActiveTab = tab;
+        StateHasChanged();
+    }
+
+    public string TabClass(VezaVITab tab)
+    {
+        string css = $"vi-tab-page {AdditionalCSS} {tab.AdditionalHeaderCSS}";
+        if (IsActiveTab(tab))
+            css += $" vi-tab-active-page {AdditionalActiveCSS}";
+        return css;
+    }
+}
+

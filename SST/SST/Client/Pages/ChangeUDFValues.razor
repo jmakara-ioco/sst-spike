@@ -1,0 +1,27 @@
+﻿<div class="form-group">
+    <InputText placeholder="@DisplayText" Class="form-control" id="@($"{Level}_{DataFieldID}")" @bind-Value="Value" />
+</div>
+
+@code {
+
+    [Parameter]
+    public int Level { get; set; }
+    [Parameter]
+    public string DisplayText { get; set; }
+    [Parameter]
+    public Guid DataFieldID { get; set; }
+    [Parameter]
+    public QuestionSimulationEntityDataToken Sim { get; set; }
+
+    public string Value {
+        get
+        {
+            return Sim[Level];
+        }
+        set
+        {
+            Sim[Level] = value;
+        }
+    }
+
+}

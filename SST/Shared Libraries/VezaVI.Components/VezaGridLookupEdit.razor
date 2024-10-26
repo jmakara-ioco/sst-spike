@@ -1,0 +1,319 @@
+﻿@typeparam TItem
+@namespace VezaVI.Light.Components
+@inject IVezaDataService<TItem> VezaDataService
+@inherits MaintenanceGridBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<CascadingValue Value="this">
+    <div style="display: none">
+        @Columns
+    </div>
+    <div class="vi-lookup-group">
+        @if (ReadOnly)
+        {
+            <div class="search form-label">
+                @DisplayText
+            </div>
+        }
+        else
+        {
+            <div class="search form-control" @onclick="@(() => Toggle(true))">
+                @DisplayText
+            </div>
+            <span class="oi oi-chevron-bottom" @onclick="@(() => Toggle(true))">
+            </span>
+        }
+    </div>
+    @if (IsOpen)
+    {
+        <div class="blazored-modal-container blazored-modal-center">
+            <div class="blazored-modal-overlay" @onclick="@(() => Toggle(false))"></div>
+            <div class="blazored-modal wizard-normal" style="position: relative;">
+                <div class="blazored-modal-content">
+                    @if ((page == null) || (page.Items == null))
+                    {
+                        <h1 class="vi-center-text">Loading @VezaVIUtils.Plural(Description)...</h1>
+                    }
+                    else
+                    {
+                        @if (Caption != string.Empty)
+                        {
+                            <h1 class="vi-center-text">@Caption</h1>
+                        }
+                        <div class="search-form-wrapper">
+                            <div class="input-group">
+                                <input type="text" @bind="SearchText" class="search form-control" placeholder="Search...">
+                                <span class="vi-maintgrid-search" @onclick="Search">
+                                    <span class="oi oi-magnifying-glass"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="vi-panel">
+                            <div class="vi-scrollpanel">
+                                <table class="vi-maintgrid-table">
+                                    <thead class="vi-maintgrid-table-thead">
+                                        <tr>
+                                            @Columns
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (page.Items.Count == 0)
+                                        {
+                                            <tr style="height: 50px;">
+                                                <td class="no-rows"><h5>No records found</h5></td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var item in page.Items)
+                                            {
+                                                <tr class="@((Guid?)item.GetID() == Value ? "vi-maintgrid-table-selected" : "")" @onclick="@(() => SelectItem(item))" style="cursor: pointer;">
+                                                    @foreach (var column in columns)
+                                                    {
+                                                        @if (column.Template is null)
+                                                        {
+                                                            if (item.GetType().GetProperty(column.PropertyName) != null)
+                                                            {
+                                                                <td>@item.GetType().GetProperty(column.PropertyName).GetValue(item, null)</td>
+                                                            }
+                                                            else
+                                                            {
+                                                                <td>@column.PropertyName does not exist on Entity</td>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            @column.Template(item)
+                                                        }
+                                                    }
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <Pager PageIndex="page.PageIndex" TotalPages="page.TotalPages" OnClick="PageIndexChanged"
+                               HasNextPage="page.HasNextPage" HasPreviousPage="page.HasPreviousPage">
+                        </Pager>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</CascadingValue>
+    @code
+{
+        private bool IsOpen { get; set; } = false;
+
+        PaginatedList<TItem> page;
+        private string SearchText { get; set; }
+        private string CurrentSearchText { get; set; }
+
+        private List<MaintenanceGridColumn> columns = new List<MaintenanceGridColumn>();
+        public override void AddColumn(MaintenanceGridColumn column)
+        {
+            if (columns.FirstOrDefault(x => x.PropertyName == column.PropertyName) == null)
+            {
+                columns.Add(column);
+                DisplayText = GetDisplayText();
+                StateHasChanged();
+            }
+        }
+
+        public override void RemoveColumn(MaintenanceGridColumn column)
+        {
+            columns.Remove(column);
+            DisplayText = GetDisplayText();
+            StateHasChanged();
+        }
+
+        [Parameter]
+        public RenderFragment Columns { get; set; }
+        [Parameter]
+        public string Caption { get; set; }
+        [Parameter]
+        public string Description { get; set; }
+        [Parameter]
+        public int DefaultPageSize { get; set; } = 10;
+        [Parameter]
+        public bool ReadOnly { get; set; } = false;
+        public string DisplayText { get; set; }
+        public bool initialized { get; set; } = false;
+
+        private IList<VezaVIGridFilter> _gridFilter = new List<VezaVIGridFilter>();
+        [Parameter]
+        public IList<VezaVIGridFilter> GridFilter
+        {
+            get
+            {
+                return _gridFilter;
+            }
+            set
+            {
+                if (_gridFilter == value)
+                    return;
+                _gridFilter = value;
+                new Task(async () =>
+                {
+                    await Refresh();
+                }).Start();
+            }
+        }
+
+        public delegate Task RefreshGridDataSource();
+        public event RefreshGridDataSource OnRefresh;
+
+        private async Task RefreshScreen()
+        {
+            await InvokeAsync(() => StateHasChanged());
+        }
+
+        protected async override Task OnInitializedAsync()
+        {
+            OnRefresh += RefreshScreen;
+            if (!initialized)
+                await Refresh();
+        }
+
+        public async Task RefreshGrid(VezaModalSubmitEventArgs<TItem> args)
+        {
+            await Refresh();
+            OnRefresh?.Invoke();
+        }
+
+        public async Task Refresh()
+        {
+            initialized = true;
+            page = await VezaDataService.GetListAsync(GridFilter, PageNumber, DefaultPageSize, CurrentSortField, CurrentSortOrder, CurrentSearchText);
+            OnRefresh?.Invoke();
+        }
+
+        public override async Task SortAsync(string sortField)
+        {
+            if (sortField.Equals(CurrentSortField))
+            {
+                CurrentSortOrder = CurrentSortOrder.Equals("Asc") ? "Desc" : "Asc";
+            }
+            else
+            {
+                CurrentSortField = sortField;
+                CurrentSortOrder = "Asc";
+            }
+            await Refresh();
+        }
+
+        public override string SortIndicator(string sortField)
+        {
+            if (sortField.Equals(CurrentSortField))
+            {
+                return CurrentSortOrder.Equals("Asc") ? "oi oi-sort-ascending" : "oi oi-sort-descending";
+            }
+            return "oi oi-elevator";
+        }
+
+        public async void PageIndexChanged(int newPageNumber)
+        {
+            if (newPageNumber < 1 || newPageNumber > page.TotalPages)
+            {
+                return;
+            }
+            PageNumber = newPageNumber;
+            await Refresh();
+        }
+
+        public async void Search()
+        {
+            PageNumber = 1;
+            CurrentSearchText = SearchText;
+            await Refresh();
+        }
+
+        public async Task Toggle(bool isOpen)
+        {
+            IsOpen = isOpen;
+            await RefreshScreen();
+        }
+
+        [Parameter]
+        public EventCallback<Guid?> ValueChanged { get; set; }
+
+        private Guid? _value = null;
+        [Parameter]
+        public Guid? Value
+        {
+            get
+            {
+                return _value;
+            }
+            set
+            {
+                if (_value == value)
+                    return;
+                _value = value;
+                new Task(async () =>
+                {
+                    await GetSelectedItem();
+                }).Start();
+                ValueChanged.InvokeAsync(value);
+            }
+        }
+
+        private TItem _selectedItem { get; set; }
+        private async Task SelectItem(TItem item)
+        {
+            _selectedItem = item;
+            DisplayText = GetDisplayText();
+            Value = (item != null) ? item.GetID() : null;
+            await Toggle(false);
+        }
+
+        private async Task GetSelectedItem()
+        {
+            if ((_selectedItem == null) || (_value != (Guid?)_selectedItem.GetID()))
+            {
+                if ((_value != null) && (_value != Guid.Empty))
+                {
+                    var item = await VezaDataService.GetAsync(_value);
+                    await SelectItem(item);
+                    StateHasChanged();
+                }
+                else
+                {
+                    await SelectItem(null);
+                }
+            }
+        }
+
+        private string GetDisplayText()
+        {
+            if (_selectedItem != null)
+            {
+                string displayValue = string.Empty;
+                if (columns != null)
+                {
+                    foreach (var col in columns)
+                    {
+                        if (col.UseAsDisplay)
+                        {
+                            var prop = _selectedItem.GetType().GetProperty(col.PropertyName);
+                            if (prop != null)
+                            {
+                                var value = prop.GetValue(_selectedItem);
+                                if (displayValue != string.Empty)
+                                    displayValue += " ";
+                                displayValue += (value == null) ? string.Empty : value.ToString();
+                            }
+                            else
+                            {
+                                return "No property selected to display";
+                            }
+                        }
+                    }
+                }
+                return displayValue;
+            }
+            return string.Empty;
+        }
+    }

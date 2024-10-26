@@ -1,0 +1,96 @@
+﻿@page "/myprofile"
+@attribute [Authorize]
+@inject NavigationManager NavigationManager
+@layout MainLayout
+@inject ILocalStorageService LocalStorage
+@inject HttpClient HttpClient
+@inject IProfileService ProfileService
+
+
+<div class="card">
+    @if (ShowErrors)
+    {
+        <div class="alert alert-danger" role="alert">
+            <p>@Error</p>
+        </div>
+    }
+    <div class="card-body">
+
+        <h5 class="card-title">Manage your profile</h5>
+        <EditForm Model="profileModel" OnValidSubmit="Update">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <InputText Id="email" Class="form-control" @bind-Value="profileModel.Email" />
+                <ValidationMessage For="@(() => profileModel.Email)" />
+            </div>
+            <div class="form-group">
+                <label for="FirstName">First Name</label>
+                <InputText Id="FirstName" Class="form-control" @bind-Value="profileModel.FirstName"></InputText>
+                <ValidationMessage For="@(() => profileModel.FirstName)" />
+            </div>
+            <div class="form-group">
+                <label for="LastName">Last Name</label>
+                <InputText Id="LastName" Class="form-control" @bind-Value="profileModel.LastName" />
+                <ValidationMessage For="@(() => profileModel.LastName)" />
+            </div>
+            <div class="form-group">
+                <label for="ContactNumber">Contact Number</label>
+                <InputText Id="ContactNumber" Class="form-control" @bind-Value="profileModel.ContactNumber" />
+                <ValidationMessage For="@(() => profileModel.ContactNumber)" />
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+
+    private ProfileModel profileModel = new ProfileModel();
+    private bool ShowErrors;
+    private string Error = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Load();
+    }
+
+    private async void Load()
+    {
+        var tokenResult = await LocalStorage.GetItemAsync<string>("authToken");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"api/GetUserProfile");
+        request.Headers.Authorization = new AuthenticationHeaderValue("bearer", tokenResult);
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            var resultstr = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrEmpty(resultstr))
+            {
+                profileModel = JsonSerializer.Deserialize<ProfileModel>(resultstr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                StateHasChanged();
+            }
+        }
+
+    }
+
+    private async Task Update()
+    {
+        ShowErrors = false;
+
+        var result = await ProfileService.UpdateProfile(profileModel);
+
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Error = result.Errors.FirstOrDefault();
+            ShowErrors = true;
+        }
+    }
+}

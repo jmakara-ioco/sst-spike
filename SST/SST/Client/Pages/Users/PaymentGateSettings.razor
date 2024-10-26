@@ -1,0 +1,145 @@
+﻿@page "/paymentgate"
+@layout MainLayout
+@inject IPaymentGateService PaymentGateService
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject AuthenticationStateProvider Provider
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@namespace SST.Client
+
+<div class="card">
+    @if (ShowErrors)
+    {
+        <div class="alert alert-danger" role="alert">
+            <p>@Error</p>
+        </div>
+    }
+    <div class="card-body">
+        <h5 class="card-title">Manage your Online Store Settings</h5>
+        <EditForm Model="paymentGate" OnValidSubmit="Update">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group">
+                <label for="EnableOnlineStore">Enable Online Store</label>
+                <label class="switch">
+                    <InputCheckbox id="EnableOnlineStore" Class="form-control" @bind-Value="paymentGate.EnableOnlineStore"></InputCheckbox>
+                    <span class="switch-slider round"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="URLPrefects">Online Store URL Prefects</label>
+                <InputText Id="URLPrefects" Class="form-control" @bind-Value="paymentGate.UrlPrefects"></InputText>
+                <ValidationMessage For="@(() => paymentGate.UrlPrefects)" />
+            </div>
+            <div class="form-group">
+                <label for="dropdown">Payment Gateway Provider</label>
+                <select Id="PlatformID" class="form-control" @bind="paymentGate.Supplier">
+                    <option value="">Select a Payment Gateway Provider</option>
+                    <option value="1">Paygate</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="APIKey">API Key</label>
+                <InputText Id="APIKey" Class="form-control" @bind-Value="paymentGate.APIKey" />
+                <ValidationMessage For="@(() => paymentGate.APIKey)" />
+            </div>
+            <div class="form-group">
+                <label for="PaygatePassword">Paygate Password</label>
+                <InputText Id="PaygatePassword" Class="form-control" @bind-Value="paymentGate.APIPassword"></InputText>
+                <ValidationMessage For="@(() => paymentGate.APIPassword)" />
+            </div>
+            <div class="form-group">
+                <label for="OnlineStoreName">Online Store Caption</label>
+                <InputText Id="OnlineStoreName" Class="form-control" @bind-Value="paymentGate.OnlineStoreName"></InputText>
+                <ValidationMessage For="@(() => paymentGate.OnlineStoreName)" />
+            </div>
+            <div class="form-group">
+                <label for="OnlineBackground">Online Store Background</label>
+                <div class="drag-drop-zone">
+                    <InputFile OnChange="UploadOnlineBackground" MaxBufferSize="@MaxFileSize" id="OnlineBackground" />
+                    @status
+                </div>
+                @if (FirmID != Guid.Empty)
+                {
+                    <img style="max-width: 100%;" class="large-logo" src="api/uploads/@FirmID-OnlineBg.png" />
+                }
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </EditForm>
+    </div>
+</div>
+
+@code{
+    public PaymentGate paymentGate = new PaymentGate();
+    private bool ShowErrors;
+    private string Error = "";
+
+    const string DefaultStatus = "Drop a file here to view it, or click to choose a file";
+    const int MaxFileSize = 1 * 1024 * 1024; // 1MB
+    string uploadStatus = DefaultStatus;
+    string uploadFileContents;
+    string status = DefaultStatus;
+
+    public Guid FirmID = Guid.Empty;
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await Provider.GetAuthenticationStateAsync();
+        if (state.User != null)
+        {
+            if (state.User.HasClaim(x => x.Type == "CompanyID"))
+            {
+                FirmID = new Guid(state.User.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+            }
+        }
+
+        paymentGate = await PaymentGateService.GetDefaultPaymentGate();
+    }
+
+    private async Task Update()
+    {
+        ShowErrors = false;
+        var result = await PaymentGateService.UpdateDefaultPaymentGate(paymentGate);
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Error = result.Errors.FirstOrDefault();
+            ShowErrors = true;
+        }
+
+    }
+
+    async Task UploadOnlineBackground(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            return;
+        }
+        else if (file.Size > MaxFileSize)
+        {
+            status = $"That's too big. Max size: {MaxFileSize} bytes.";
+        }
+        else
+        {
+            status = "Loading...";
+
+            byte[] buffer = new byte[0x1000];
+            byte[] fileBytes = new byte[0];
+            int numRead;
+            using var stream = file.OpenReadStream(MaxFileSize);
+            while ((numRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+            {
+                fileBytes = fileBytes.Concat(buffer).ToArray();
+            }
+            var content = new MultipartFormDataContent {
+                { new ByteArrayContent(fileBytes), "\"upload\"", $"{FirmID}-OnlineBg.png" }
+            };
+            await HttpClient.PostAsync("api/uploads", content);
+            status = DefaultStatus;
+        }
+    }
+}

@@ -1,0 +1,19 @@
+﻿<VezaVITile>
+    <h5>@Name @Level</h5>
+    @foreach (var q in DataFields)
+    {
+        <p>
+            @DataFieldsValues[q.DataFieldID]: <SST.Client.Pages.ChangeUDFValues DataFieldID="q.DataFieldID" DisplayText="" Level="@Level" Sim="q" />
+        </p>
+    }
+</VezaVITile>
+@code {
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public List<QuestionSimulationEntityDataToken> DataFields { get; set; }
+    [Parameter]
+    public int Level { get; set; }
+    [Parameter]
+    public Dictionary<Guid, string> DataFieldsValues { get; set; }
+}

@@ -1,0 +1,60 @@
+﻿@implements IDisposable
+
+@if (LoadOnFocus)
+{
+    if (TabControl.IsActiveTab(this))
+    {
+        <div class="@TabCSS" style="@TabStyle">
+            @ChildContent
+        </div>
+    }
+}
+else 
+{ 
+    <div class="@TabCSS" style="@TabStyle">
+        @ChildContent
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [CascadingParameter]
+    public VezaVITabControl TabControl { get; set; }
+    [Parameter]
+    public string AdditionalActiveCSS { get; set; }
+    [Parameter]
+    public string AdditionalHeaderCSS { get; set; }
+    [Parameter]
+    public string AdditionalCSS { get; set; }
+    [Parameter]
+    public string Caption { get; set; }
+    [Parameter]
+    public bool LoadOnFocus { get; set; } = true;
+
+    protected async override Task OnInitializedAsync()
+    {
+        TabControl.AddTab(this);
+    }
+
+    public void Dispose()
+    {
+        TabControl.RemoveTab(this);
+    }
+
+    private string TabCSS
+    {
+        get
+        {
+            return (TabControl.IsActiveTab(this)) ? AdditionalActiveCSS : AdditionalCSS;
+        }
+    }
+
+    private string TabStyle
+    {
+        get
+        {
+            return (TabControl.IsActiveTab(this)) ? $"display: block;" : "display: none;";
+        }
+    }
+}

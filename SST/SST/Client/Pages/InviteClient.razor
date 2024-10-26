@@ -1,0 +1,137 @@
+﻿@page "/inviteclient"
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ICustomRegistrationService  CustomerRegistrationService
+@inject NavigationManager NavigationManager
+@namespace SST.Client
+
+<div>
+    <div class="large-logo">
+    </div>
+    <div class="card">
+        @if (ShowErrors)
+        {
+            <div class="alert alert-danger" role="alert">
+                @foreach (var error in Errors)
+                {
+                    <p>@error</p>
+                }
+            </div>
+        }
+        <div class="card-body">
+            @if (CompanyID == Guid.Empty)
+            {
+                <h5 class="card-title">Enter your Customer details to Send Invite.</h5>
+                <EditForm Model="CustomerRegisterModel" OnValidSubmit="HandleRegistration">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="form-group">
+                        <label for="firstname">First Name</label>
+                        <InputText Id="firstname" class="form-control" @bind-Value="CustomerRegisterModel.FirstName" />
+                        <ValidationMessage For="@(() => CustomerRegisterModel.FirstName)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastname">Last Name</label>
+                        <InputText Id="lastname" class="form-control" @bind-Value="CustomerRegisterModel.LastName" />
+                        <ValidationMessage For="@(() => CustomerRegisterModel.LastName)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="firmname">Company Name</label>
+                        <InputText Id="firmname" class="form-control" @bind-Value="CustomerRegisterModel.CompanyName" />
+                        <ValidationMessage For="@(() => CustomerRegisterModel.CompanyName)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="firmname">Registration Number</label>
+                        <InputText Id="registrationnumber" class="form-control" @bind-Value="CustomerRegisterModel.RegistrationNumber" />
+                        <ValidationMessage For="@(() => CustomerRegisterModel.RegistrationNumber)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="firmname">Pricing Matrix</label>
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Monthly Price</th>
+                                    <th>Yearly Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in CustomerRegisterModel.Price)
+                                {
+                                    <SST.Client.Components.CustomerPriceModelComponent Model="row" />
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email address</label>
+                        <InputText Id="email" class="form-control" @bind-Value="CustomerRegisterModel.Email" />
+                        <ValidationMessage For="@(() => CustomerRegisterModel.Email)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="onlinestorecharge">Online Store Charge %</label>
+                        <InputText Id="onlinestorecharge" class="form-control" @bind-Value="CustomerRegisterModel.OnlineStoreCharge" />
+                        <ValidationMessage For="@(() => CustomerRegisterModel.OnlineStoreCharge)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="comment">Comments</label>
+                        <InputTextArea  Id="comment" class="form-control" @bind-Value="CustomerRegisterModel.Comment" />
+                        <ValidationMessage For="@(() => CustomerRegisterModel.Comment)" />
+                    </div>
+
+                    @*<div class="form-group">
+            <label for="password">Password</label>
+            <InputText Id="password" type="password" class="form-control" @bind-Value="RegisterModel.Password" />
+            <ValidationMessage For="@(() => RegisterModel.Password)" />
+        </div>
+        <div class="form-group">
+            <label for="password">Confirm Password</label>
+            <InputText Id="password" type="password" class="form-control" @bind-Value="RegisterModel.ConfirmPassword" />
+            <ValidationMessage For="@(() => RegisterModel.ConfirmPassword)" />
+        </div>*@
+
+                    <button type="submit" class="btn btn-primary">Send Invite</button>
+                </EditForm>
+            }
+            else
+            {
+
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public Guid CompanyID { get; set; } = Guid.Empty;
+
+    private CustomerRegisterModel CustomerRegisterModel = new CustomerRegisterModel();
+    private bool ShowErrors;
+    private IEnumerable<string> Errors;
+
+    private async Task HandleRegistration()
+    {
+        ShowErrors = false;
+
+        var result = await CustomerRegistrationService.RegisterCustomer(CustomerRegisterModel);
+
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/");
+            //send email?
+        }
+        else
+        {
+            Errors = result.Errors;
+            ShowErrors = true;
+        }
+    }
+}

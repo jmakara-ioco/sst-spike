@@ -1,0 +1,107 @@
+﻿@page "/firmemailsettings"
+@layout MainLayout
+@inject ILocalStorageService LocalStorage
+@inject HttpClient HttpClient
+@inject IMailService MailService
+@inject NavigationManager NavigationManager
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@namespace SST.Client
+
+<div class="card">
+    @if (ShowErrors)
+    {
+        <div class="alert alert-danger" role="alert">
+            <p>@Error</p>
+        </div>
+    }
+    <div class="card-body">
+
+        <h5 class="card-title">Manage your Email Settings</h5>
+        <EditForm Model="emailSettingModel" OnValidSubmit="Update">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="fromAddress">From address</label>
+                <InputText Id="fromAddress" Class="form-control" @bind-Value="emailSettingModel.FromAddress" />
+                <ValidationMessage For="@(() => emailSettingModel.FromAddress)" />
+            </div>
+            <div class="form-group">
+                <label for="HostAddress">Host Address</label>
+                <InputText Id="HostAddress" Class="form-control" @bind-Value="emailSettingModel.HostAddress"></InputText>
+                <ValidationMessage For="@(() => emailSettingModel.HostAddress)" />
+            </div>
+            <div class="form-group">
+                <label for="UseSsl">Use Ssl</label>
+                <label class="switch">
+                    <InputCheckbox id="UseSsl" Class="form-control" @bind-Value="emailSettingModel.UseSsl"></InputCheckbox>
+                    <span class="switch-slider round"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="hostusername">Username</label>
+                <InputText Id="hostusername" Class="form-control" @bind-Value="emailSettingModel.Username" />
+                <ValidationMessage For="@(() => emailSettingModel.Username)" />
+            </div>
+            <div class="form-group ">
+                <label for="hostpassword">Password</label>
+                <InputText Id="hostpassword" Class="form-control" type="password" @bind-Value="emailSettingModel.Password" />
+                <ValidationMessage For="@(() => emailSettingModel.Password)" />
+            </div>
+            <div class="form-group">
+                <label for="Port">Port</label>
+                <InputNumber Id="Port" Class="form-control" @bind-Value="emailSettingModel.Port" />
+                <ValidationMessage For="@(() => emailSettingModel.Port)" />
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </EditForm>
+    </div>
+</div>
+
+@code{
+    private EmailSettingModel emailSettingModel = new EmailSettingModel();
+    private bool ShowErrors;
+    private string Error = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Load();
+    }
+
+    private async void Load()
+    {
+        var tokenResult = await LocalStorage.GetItemAsync<string>("authToken");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"api/GetFirmMailSettings");
+        request.Headers.Authorization = new AuthenticationHeaderValue("bearer", tokenResult);
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            var resultstr = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrEmpty(resultstr))
+            {
+                emailSettingModel = JsonSerializer.Deserialize<EmailSettingModel>(resultstr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                StateHasChanged();
+            }
+        }
+
+    }
+
+    private async Task Update()
+    {
+        ShowErrors = false;
+
+        //var tokenResult = await LocalStorage.GetItemAsync<string>("authToken");
+        var result = await MailService.UpdateMailSettings(emailSettingModel);
+
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Error = result.Errors.FirstOrDefault();
+            ShowErrors = true;
+        }
+        //var response = await _httpClient.PostAsync("api/UpdateUserprofile", new StringContent(ProfileModelJson, Encoding.UTF8, "application/json"));
+    }
+}

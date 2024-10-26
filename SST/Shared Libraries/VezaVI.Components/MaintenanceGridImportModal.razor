@@ -1,0 +1,80 @@
+﻿@typeparam TItem
+@inject IVezaDataService<TItem> VezaDataService
+@namespace VezaVI.Light.Components
+@inject IModalService ModalService
+
+    <div class="simple-form">
+        <EditForm Model="FileBase64" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+            <a class="btn btn-primary" href="@($"{VezaDataService.APIRootPath}/ImportStructure/{AdditionalInfo}")" download="">Download Template</a>
+            <div class="form-group">
+                <label for="UserType">Upload File (Csv)</label>
+                <div class="drag-drop-zone">
+                    <InputFile OnChange="OnInputFileChange" MaxBufferSize="@MaxFileSize" accept=".csv" />
+                    @headerStatus
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Import</button>
+            <button @onclick="BlazoredModal.CancelAsync" class="btn btn-secondary">Cancel</button>
+        </EditForm>
+    </div>
+
+@code
+{
+
+    async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            return;
+        }
+        else if (file.Size > MaxFileSize)
+        {
+            headerStatus = $"That's too big. Max size: {MaxFileSize} bytes.";
+        }
+        else
+        {
+            headerStatus = "Loading...";
+            string format = "application/octet-stream";
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream().ReadAsync(buffer);
+            var imageDataUrl = $"{Convert.ToBase64String(buffer)}";
+            FileBase64 = imageDataUrl;
+            headerStatus = DefaultStatus;
+        }
+    }
+    private string FileBase64 { get; set; } = string.Empty;
+
+    const string DefaultStatus = "Drop a file here to view it, or click to choose a file";
+    const int MaxFileSize = 5 * 1024 * 1024; // 5MB
+    string headerStatus = DefaultStatus;
+
+    TItem _item = new TItem();
+    [CascadingParameter]
+    BlazoredModalInstance BlazoredModal { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> AfterImport { get; set; }
+
+    [Parameter]
+    public string AdditionalInfo { get; set; }
+
+    async Task Save()
+    {
+        /*Import*/
+        if (FileBase64 != string.Empty)
+        {
+            await VezaDataService.ImportAsync(FileBase64);
+            await InvokeAsync(() => StateHasChanged());
+            await BlazoredModal.CloseAsync(ModalResult.Ok<TItem>(_item));
+
+            if (AfterImport.HasDelegate)
+            {
+                await AfterImport.InvokeAsync(true);
+            }
+        }
+    }
+}
+
+

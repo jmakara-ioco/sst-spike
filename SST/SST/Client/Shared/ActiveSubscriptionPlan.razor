@@ -1,0 +1,21 @@
+﻿@inject ISubscriptionService SubscriptionService
+
+<h3>Active Subscription Plan</h3>
+@if (activePlan != null)
+{
+<p>
+    @activePlan.Description
+    @activePlan.NrOFUsers
+    @activePlan.ExpiryDate
+</p>
+}
+
+@code {
+    FirmSubscriptionPlan activePlan = null;
+    protected override async Task OnInitializedAsync()
+    {
+
+        activePlan = SubscriptionService.SubscriptionPlan;
+    }
+
+}

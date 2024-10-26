@@ -1,0 +1,31 @@
+﻿@implements IDisposable
+<div class="slick-list draggable">
+    <div class="slick-track" style="opacity: 1; width: 100vw; @TabStyle">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [CascadingParameter]
+    public VezaVIImageAutoScrollPanel Panel { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        Panel.Add(this);
+    }
+
+    public void Dispose()
+    {
+        Panel.Remove(this);
+    }
+
+    private string TabStyle
+    {
+        get
+        {
+            return (Panel.IsActive(this)) ? $"display: block;" : "display: none;";
+        }
+    }
+}

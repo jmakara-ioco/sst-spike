@@ -1,0 +1,16 @@
+@page "/logout"
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject ITenantHelperService TenantHelperService
+
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.Logout();
+        await TenantHelperService.ResetBranding();
+        NavigationManager.NavigateTo("/");
+    }
+
+}

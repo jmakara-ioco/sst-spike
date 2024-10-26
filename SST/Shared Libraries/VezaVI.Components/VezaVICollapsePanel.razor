@@ -1,0 +1,22 @@
+﻿@implements IDisposable
+    
+<div class="vi-collapse-panel">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [CascadingParameter]
+    public VezaVICollapseControl CollapseControl { get; set; }
+        
+    protected async override Task OnInitializedAsync()
+    {
+        CollapseControl.AddPanel(this);
+    }
+
+    public void Dispose()
+    {
+        CollapseControl.RemovePanel(this);
+    }
+}

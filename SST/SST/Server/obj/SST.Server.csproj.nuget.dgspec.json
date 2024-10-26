@@ -1,0 +1,739 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Server\\SST.Server.csproj": {}
+  },
+  "projects": {
+    "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Components\\VezaVI.Light.Components.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Components\\VezaVI.Light.Components.csproj",
+        "projectName": "VezaVI.Light.Components",
+        "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Components\\VezaVI.Light.Components.csproj",
+        "packagesPath": "C:\\Users\\makar\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Components\\obj\\",
+        "projectStyle": "PackageReference",
+        "crossTargeting": true,
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\makar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/khumlaplatform/khumlaplatform/_packaging/KhumlaFeed/nuget/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "Blazored.LocalStorage": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
+            "Blazored.Modal": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "Microsoft.AspNetCore.Components": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Components.Web": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "System.Net.Http.Json": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
+            "System.Text.Json": {
+              "target": "Package",
+              "version": "[5.0.1, )"
+            },
+            "Tewr.Blazor.FileReader": {
+              "target": "Package",
+              "version": "[3.0.0.20340, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj",
+        "projectName": "VezaVI.Light.Shared",
+        "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj",
+        "packagesPath": "C:\\Users\\makar\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\makar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/khumlaplatform/khumlaplatform/_packaging/KhumlaFeed/nuget/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Components": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Components.Web": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.WebUtilities": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "PhotoSauce.MagicScaler": {
+              "target": "Package",
+              "version": "[0.11.1, )"
+            },
+            "PluralizeService.Core": {
+              "target": "Package",
+              "version": "[1.2.21147.2, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "System.Drawing.Common": {
+              "target": "Package",
+              "version": "[5.0.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.ServerExtensions\\VezaVI.Light.ServerExtensions.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.ServerExtensions\\VezaVI.Light.ServerExtensions.csproj",
+        "projectName": "VezaVI.Light.ServerExtensions",
+        "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.ServerExtensions\\VezaVI.Light.ServerExtensions.csproj",
+        "packagesPath": "C:\\Users\\makar\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.ServerExtensions\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\makar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/khumlaplatform/khumlaplatform/_packaging/KhumlaFeed/nuget/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Mvc.Core": {
+              "target": "Package",
+              "version": "[2.2.5, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Client\\SST.Client.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Client\\SST.Client.csproj",
+        "projectName": "SST.Client",
+        "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Client\\SST.Client.csproj",
+        "packagesPath": "C:\\Users\\makar\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Client\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\makar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/khumlaplatform/khumlaplatform/_packaging/KhumlaFeed/nuget/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Components\\VezaVI.Light.Components.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Components\\VezaVI.Light.Components.csproj"
+              },
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj"
+              },
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Shared\\SST.Shared.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Shared\\SST.Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "Blazored.LocalStorage": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
+            "Blazored.Modal": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "Microsoft.AspNetCore.Components.WebAssembly": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Components.WebAssembly.Authentication": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Components.WebAssembly.DevServer": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Rewrite": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
+            "Microsoft.CSharp": {
+              "target": "Package",
+              "version": "[4.7.0, )"
+            },
+            "Microsoft.Extensions.Http": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
+            "Microsoft.NET.ILLink.Analyzers": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[7.0.100-1.23211.1, )",
+              "autoReferenced": true
+            },
+            "Microsoft.NET.ILLink.Tasks": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[7.0.100-1.23211.1, )",
+              "autoReferenced": true
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "System.Net.Http.Json": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.browser-wasm",
+              "version": "[5.0.17, 5.0.17]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11\\RuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "browser-wasm": {
+          "#import": []
+        }
+      }
+    },
+    "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Server\\SST.Server.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Server\\SST.Server.csproj",
+        "projectName": "SST.Server",
+        "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Server\\SST.Server.csproj",
+        "packagesPath": "C:\\Users\\makar\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Server\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\makar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/khumlaplatform/khumlaplatform/_packaging/KhumlaFeed/nuget/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj"
+              },
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.ServerExtensions\\VezaVI.Light.ServerExtensions.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.ServerExtensions\\VezaVI.Light.ServerExtensions.csproj"
+              },
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Client\\SST.Client.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Client\\SST.Client.csproj"
+              },
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Shared\\SST.Shared.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Shared\\SST.Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "DinkToPdf": {
+              "target": "Package",
+              "version": "[1.0.8, )"
+            },
+            "Microsoft.AspNetCore.ApiAuthorization.IdentityServer": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Components.WebAssembly.Server": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Identity.UI": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.AspNetCore.Rewrite": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "System.Linq": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[5.0.17, 5.0.17]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Shared\\SST.Shared.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Shared\\SST.Shared.csproj",
+        "projectName": "SST.Shared",
+        "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Shared\\SST.Shared.csproj",
+        "packagesPath": "C:\\Users\\makar\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\SST\\Shared\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\makar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/khumlaplatform/khumlaplatform/_packaging/KhumlaFeed/nuget/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {
+              "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj": {
+                "projectPath": "D:\\Code\\CloudberrySoftwareSolutions\\SST-Law\\ContractBuilder-main\\SST\\Shared Libraries\\VezaVI.Light.Shared\\VezaVI.Light.Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "all"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Http": {
+              "target": "Package",
+              "version": "[2.2.2, )"
+            },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[5.0.3, )"
+            },
+            "System.ComponentModel.Annotations": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[5.0.0, 5.0.0]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100-rc.2.24474.11\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

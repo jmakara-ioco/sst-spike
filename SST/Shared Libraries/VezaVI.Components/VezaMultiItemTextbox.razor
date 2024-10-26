@@ -1,0 +1,58 @@
+﻿<div class="vi-multi-item-textbox">
+    @foreach (var item in Items.Where(x => x.Selected))
+    {
+        <span class="vi-multi-item">@item.DisplayText<span class="vi-multi-item-cancel" @onclick="@(() => TryRemove(item))">x</span></span>
+    }
+    <input type="text" class="vi-multi-item-input" placeholder="@NullText" oninput="this.blur(); this.focus();"
+        @bind="@SelectedText"
+        @onblur="@(ev => TryAutoComplete(ev))"
+        @onfocus="@(ev => TryAutoComplete(ev))" >
+    <div class="dropdown-menu dropdown-menu-right scrollable-menu @(_isOpen ? "show" : "")" style="width: 100%;">
+        <h6 class="dropdown-header">@Items.Where(x => !x.Selected).Count() item(s)</h6>
+        @foreach (var item in Items.Where(x => !x.Selected && x.DisplayText.Contains(SelectedText, StringComparison.InvariantCultureIgnoreCase)))
+        {
+            <a class="dropdown-item"
+                @onclick="@(() => TrySelect(item))">
+                @((MarkupString) item.DisplayText)
+            </a>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _isOpen = false;
+
+    [Parameter]
+    public List<VezaMultiItem> Items { get; set; } = new List<VezaMultiItem>();
+
+    public string SelectedText { get; set; } = string.Empty;
+
+    [Parameter]
+    public string NullText { get; set; }
+
+    public void TrySelect(VezaMultiItem item)
+    {
+        item.Selected = true;
+        StateHasChanged();
+        SelectedText = string.Empty;
+        _isOpen = false;
+        NullText = "";
+    }
+
+    public void TryRemove(VezaMultiItem item)
+    {
+        item.Selected = false;
+        StateHasChanged();
+    }
+
+    private void TryAutoComplete(FocusEventArgs ev)
+    {
+        _isOpen = true;
+        //DisplayItems = Items.Where(x => x.DisplayText.Contains(SelectedText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+
+    private void OnBlur(FocusEventArgs ev)
+    {
+        _isOpen = false;
+    }
+}

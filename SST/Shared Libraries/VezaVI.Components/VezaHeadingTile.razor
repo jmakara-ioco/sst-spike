@@ -1,0 +1,17 @@
+﻿<div class="vi-heading-tile">
+    <div class="vi-heading-tile-caption">
+        @HeaderCaption
+    </div>
+    <div class="vi-heading-tile-block">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string HeaderCaption { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

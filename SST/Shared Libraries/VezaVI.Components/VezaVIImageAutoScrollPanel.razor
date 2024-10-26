@@ -1,0 +1,94 @@
+﻿<section class="vi-auto-scroll bg-light position-relative @AdditionalCSS">
+    <div class="timer" style="@($"width: {(double)counter / (double)(MaxTicksPerPage) * 100.00}%;")"></div>
+    <div class="main-slider dots-style theme1 slick-initialized slick-slider slick-dotted">
+        <CascadingValue Value="this">
+            @ChildContent
+            <ul class="slick-dots" style="" role="tablist">
+                @foreach (var pane in Panes)
+                {
+                    <li class="@(IsActive(pane) ? "slick-active" : "")" role="presentation"><button @onclick="@(() => Activate(pane))" type="button" role="tab" id="slick-slide-control00" aria-controls="slick-slide00" aria-selected="true"></button></li>
+                }
+            </ul>
+        </CascadingValue>
+    </div>
+</section>
+
+@code {
+
+    [Parameter]
+    public int SecondsPerPage { get; set; } = 5;
+
+    public int MaxTicksPerPage
+    {
+        get
+        {
+            return SecondsPerPage * 10;
+        }
+    }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public string AdditionalCSS { get; set; }
+
+    private int currentPage = 0;
+    private static System.Timers.Timer timer;
+    private int counter = 0;
+
+    protected async override Task OnInitializedAsync()
+    {
+        timer = new System.Timers.Timer(100);
+        timer.Elapsed += Tick;
+        timer.Enabled = true;
+    }
+
+    public void Tick(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        counter++;
+        if (counter > MaxTicksPerPage)
+        {
+            counter = 0;
+            currentPage++;
+            if (currentPage >= Panes.Count)
+            {
+                currentPage = 0;
+            }
+            ActivePane = Panes[currentPage];
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private List<VezaVIImageScrollPane> Panes = new List<VezaVIImageScrollPane>();
+
+    public void Add(VezaVIImageScrollPane pane)
+    {
+        Panes.Add(pane);
+        if (ActivePane == null)
+            ActivePane = pane;
+        StateHasChanged();
+    }
+
+    public void Remove(VezaVIImageScrollPane pane)
+    {
+        Panes.Remove(pane);
+        StateHasChanged();
+    }
+
+    private VezaVIImageScrollPane ActivePane { get; set; } = null;
+    public bool IsActive(VezaVIImageScrollPane pane)
+    {
+        return (ActivePane == pane);
+    }
+
+    public void Activate(VezaVIImageScrollPane pane)
+    {
+        if (!IsActive(pane))
+        {
+            ActivePane = pane;
+            counter = 0;
+            currentPage = Panes.IndexOf(pane);
+            StateHasChanged();
+        }
+    }
+
+}

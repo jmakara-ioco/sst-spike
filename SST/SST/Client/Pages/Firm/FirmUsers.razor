@@ -1,0 +1,74 @@
+﻿@page "/firmusers"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = RoleConstants.FirmAdministrator)]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@namespace SST.Client
+
+<div class="card">
+    <div class="card-body">
+        <MaintenanceGrid TItem="ApplicationUser" Description="User" DefaultPageSize="10" GridFilter="filters" OnModalSubmit="OnClose">
+            <Columns>
+                <MaintenanceGridColumn Caption="First Name" PropertyName="FirstName" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Last Name" PropertyName="LastName" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Email" PropertyName="Email" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Type of User" PropertyName="" AllowSort="true">
+                    <Template Context="item"> 
+                        <td>@((TypeOfUser)item.TypeOfUser)</td>
+                    </Template>
+                </MaintenanceGridColumn>
+            </Columns>
+            <ModalContent Context="item">
+                <div class="form-group">
+                    <label for="FirstName">First Name</label>
+                    <InputText Id="FirstName" Class="form-control" @bind-Value="item.FirstName" />
+                    <ValidationMessage For="@(() => item.FirstName)" />
+                </div>
+                <div class="form-group">
+                    <label for="LastName">Last Name</label>
+                    <InputText Id="FirstName" Class="form-control" @bind-Value="item.LastName" />
+                    <ValidationMessage For="@(() => item.LastName)" />
+                </div>
+                <div class="form-group">
+                    <label for="Email">Email</label>
+                    <InputText Id="Email" Class="form-control" @bind-Value="item.Email" />
+                    <ValidationMessage For="@(() => item.Email)" />
+                </div>
+                <div class="form-group">
+                    <label for="UserType">User Type</label>
+                    <select Id="UserType" Class="form-control" @bind="item.TypeOfUser">
+                        <option value="2">Administrator</option>
+                        <option value="3">Standard User</option>
+                    </select>
+                    <ValidationMessage For="@(() => item.TypeOfUser)" />
+                </div>
+            </ModalContent>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code
+{
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var firmID = user.Claims.FirstOrDefault(x => x.Type == "CompanyID");
+        filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "TypeOfUser", Value = "2", Equals = true },
+            new VezaVIGridFilter() { Field = "TypeOfUser", Value = "3", Equals = true },
+            new VezaVIGridFilter() { Field = "FirmID", Value = firmID.Value.ToString(), Equals = true }
+        };
+        StateHasChanged();
+    }
+
+    IList<VezaVIGridFilter> filters;
+
+    private async Task OnClose(VezaModalSubmitEventArgs<ApplicationUser> args)
+    {
+        var ident = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = ident.User;
+        var firmID = user.Claims.FirstOrDefault(x => x.Type == "CompanyID");
+        args.Item.FirmID = (firmID == null) ? (Guid?)null : new Guid(firmID.Value);
+        args.Item.UserName = args.Item.Email;
+        args.AllowClose = true;
+    }
+}

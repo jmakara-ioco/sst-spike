@@ -1,0 +1,152 @@
+﻿@implements IDisposable
+
+<div class="vi-question-decision-tree">
+    @if (ShowToggle)
+    {
+        <ul class="@TreeCSS()">
+            @if (Nodes != null)
+            {
+                foreach (var node in Nodes)
+                {
+                    <VezaPathControlNode Node="node" NodeClicked="NodeClicked" />
+                }
+            }
+        </ul>
+    }
+</div>
+    
+
+@code {
+    [Parameter]
+    public  bool ViewToggle { get; set; }
+    [Parameter]
+    public bool SimulationToggle { get; set; }
+    [Parameter]
+    public bool ShowToggle { get; set; }
+
+    private List<VezaPathNode> Nodes = new List<VezaPathNode>();
+    private Guid SelectedContractQuestionID { get; set; }
+    private QuestionNodeTreeBuilder _treeBuilder;
+    [CascadingParameter]
+    public QuestionNodeTreeBuilder TreeBuilder {
+        get
+        {
+            return _treeBuilder;
+        }
+        set
+        {
+            _treeBuilder = value;
+            if (_treeBuilder != null)
+                _treeBuilder.TreeChanged += TreeChanged;
+        }
+    }
+
+    public string TreeCSS()
+    {
+        return ViewToggle ? "vi-flow-decision-tree" : "vi-flow-dendrogram";
+    }
+
+    private async void TreeChanged(object sender, EventArgs e)
+    {
+        GenerateTree();
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    public void Dispose()
+    {
+        if (_treeBuilder != null)
+            _treeBuilder.TreeChanged -= TreeChanged;
+    }
+
+    private void GenerateTree()
+    {
+        Nodes = new List<VezaPathNode>();
+        var questions = TreeBuilder.GetAllQuestions();
+        var root = questions.FirstOrDefault(x => x.IsRoot);
+        if (root != null)
+        {
+            VezaPathNode node = new VezaPathNode(root.QuestionText, root.ID, null);
+            node.NType = NodeType.Normal;
+            node.IsSelected = (node.EntityID == SelectedContractQuestionID);
+            Nodes.Add(node);
+            GetNodes(node, root, questions);
+        }
+    }
+
+    private bool FindInParent(VezaPathNode node, ContractQuestion nextQuestion)
+    {
+        if (node == null)
+            return false;
+        if (node.EntityID == nextQuestion.ID)
+            return true;
+        return FindInParent(node.ParentNode, nextQuestion);
+    }
+
+    private void GetNodes(VezaPathNode parent, ContractQuestion question, List<ContractQuestion> questions)
+    {
+        VezaPathNode node;
+        if (question.IsRoot)
+        {
+            node = parent;
+        }
+        else
+        {
+            node = new VezaPathNode(question.QuestionText, question.ID, null);
+            node.IsSelected = (node.EntityID == SelectedContractQuestionID);
+            node.NType = NodeType.Normal;
+            parent.AddNodes(node);
+        }
+        if ((question.TypeOfQuestion == (int)QuestionType.Quantity) || (question.TypeOfQuestion == (int)QuestionType.UserFieldsOnly))
+        {
+            var nextQuestion = questions.FirstOrDefault(x => x.ID == question.NextQuestionID);
+            if (nextQuestion != null)
+            {
+                /*Check Parents for same Question*/
+                if (FindInParent(node, nextQuestion))
+                {
+                    VezaPathNode infNode = new VezaPathNode($"Infinite Question Sequence Detected. Question '{nextQuestion.QuestionText}' already in tree.", Guid.Empty, null);
+                    infNode.NType = NodeType.Error;
+                    node.AddNodes(infNode);
+                }
+                else
+                {
+                    GetNodes(node, nextQuestion, questions);
+                }
+            }
+        }
+        else
+        {
+            foreach (var answer in TreeBuilder.GetAnswers(question.ID))
+            {
+                VezaPathNode answerNode = new VezaPathNode(answer.AnswerText, question.ID, null);
+                answerNode.NType = NodeType.Answer;
+                node.AddNodes(answerNode);
+                var nextQuestion = questions.FirstOrDefault(x => x.ID == answer.NextQuestionID);
+                if (nextQuestion != null)
+                {
+                    /*Check Parents for same Question*/
+                    if (FindInParent(answerNode, nextQuestion))
+                    {
+                        VezaPathNode infNode = new VezaPathNode($"Question '{nextQuestion.QuestionText}' is already in this tree.", Guid.Empty, null);
+                        infNode.NType = NodeType.Error;
+                        answerNode.AddNodes(infNode);
+                    }
+                    else
+                    {
+                        GetNodes(answerNode, nextQuestion, questions);
+                    }
+                }
+            }
+        }
+    }
+
+    private void NodeClicked(VezaPathNodeClickEvent e)
+    {
+        if (SelectedContractQuestionID == e.Node.EntityID)
+            SelectedContractQuestionID = Guid.Empty;
+        else
+            SelectedContractQuestionID = e.Node.EntityID;
+        TreeBuilder.RefreshDecisionTree(SelectedContractQuestionID);
+    }
+
+}

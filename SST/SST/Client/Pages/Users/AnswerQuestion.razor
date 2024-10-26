@@ -1,0 +1,27 @@
+﻿@page "/answerquestion/{TransactionID:guid}"
+
+<div class="content">
+    <div class="card">
+        <div class="card-body">
+            <SST.Client.Components.TestComponent IsOnlineStore="false" TransactionID="TransactionID" />
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private Guid _transactionID;
+    [Parameter]
+    public Guid TransactionID
+    {
+        get
+        {
+            return _transactionID;
+        }
+        set
+        {
+            _transactionID = value;
+        }
+    }
+
+}

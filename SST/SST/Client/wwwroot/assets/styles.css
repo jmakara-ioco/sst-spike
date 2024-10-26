@@ -1,0 +1,150 @@
+﻿body {
+    font-family: Calibri;
+    color: pink;
+}
+
+#VezaRichTextBox {
+    font-family: Calibri;
+}
+
+h1 {
+    font-size: 3rem;
+    color: #000000 !important;
+}
+
+h2 {
+    font-size: 2rem;
+    color: #000000 !important;
+}
+
+h3 {
+    font-size: 1.5rem;
+    color: #000000 !important;
+}
+
+p {
+    font-size: 1rem;
+    color: #000000 !important;
+}
+
+#VezaRichTextBox {
+    counter-reset: number1;
+}
+
+    #VezaRichTextBox ol li::marker {
+        content: counter(number1, decimal) ".";
+    }
+
+    #VezaRichTextBox ol li {
+        counter-increment: number1;
+        color: green;
+    }
+
+    #VezaRichTextBox ol ol {
+        counter-reset: number2;
+    }
+
+        #VezaRichTextBox ol ol li::marker {
+            content: counter(number1, decimal) "." counter(number2, decimal) " ";
+        }
+
+        #VezaRichTextBox ol ol li {
+            counter-increment: number2;
+            color: yellow;
+        }
+
+        #VezaRichTextBox ol ol ol {
+            counter-reset: number3;
+        }
+
+            #VezaRichTextBox ol ol ol li::marker {
+                content: counter(number1, decimal) "." counter(number2, decimal) "." counter(number3, decimal) " ";
+            }
+
+            #VezaRichTextBox ol ol ol li {
+                counter-increment: number3;
+            }
+
+            #VezaRichTextBox ol ol ol ol {
+                counter-reset: number4;
+            }
+
+                #VezaRichTextBox ol ol ol ol li::marker {
+                    content: counter(number1, decimal) "." counter(number2, decimal) "." counter(number3, decimal) "." counter(number4, decimal) " ";
+                }
+
+                #VezaRichTextBox ol ol ol ol li {
+                    counter-increment: number4;
+                }
+
+                #VezaRichTextBox ol ol ol ol ol {
+                    counter-reset: number5;
+                }
+
+                    #VezaRichTextBox ol ol ol ol ol li::marker {
+                        content: counter(number1, decimal) "." counter(number2, decimal) "." counter(number3, decimal) "." counter(number4, decimal) "." counter(number5, decimal) " ";
+                    }
+
+                    #VezaRichTextBox ol ol ol ol ol li {
+                        counter-increment: number5;
+                    }
+
+                    #VezaRichTextBox ol ol ol ol ol ol {
+                        counter-reset: number6;
+                    }
+
+                        #VezaRichTextBox ol ol ol ol ol ol li::marker {
+                            content: counter(number1, decimal) "." counter(number2, decimal) "." counter(number3, decimal) "." counter(number4, decimal) "." counter(number5, decimal) "." counter(number6, decimal) " ";
+                        }
+
+                        #VezaRichTextBox ol ol ol ol ol ol li {
+                            counter-increment: number6;
+                        }
+
+                        #VezaRichTextBox ol ol ol ol ol ol ol {
+                            counter-reset: number7;
+                        }
+
+                            #VezaRichTextBox ol ol ol ol ol ol ol li::marker {
+                                content: counter(number1, decimal) "." counter(number2, decimal) "." counter(number3, decimal) "." counter(number4, decimal) "." counter(number5, decimal) "." counter(number6, decimal) "." counter(number7, decimal) " ";
+                            }
+
+                            #VezaRichTextBox ol ol ol ol ol ol ol li {
+                                counter-increment: number7;
+                            }
+
+                            #VezaRichTextBox ol ol ol ol ol ol ol ol {
+                                counter-reset: number8;
+                            }
+
+                                #VezaRichTextBox ol ol ol ol ol ol ol ol li::marker {
+                                    content: counter(number1, decimal) "." counter(number2, decimal) "." counter(number3, decimal) "." counter(number4, decimal) "." counter(number5, decimal) "." counter(number6, decimal) "." counter(number7, decimal) "." counter(number8, decimal) " ";
+                                }
+
+                                #VezaRichTextBox ol ol ol ol ol ol ol ol li {
+                                    counter-increment: number8;
+                                }
+
+                                #VezaRichTextBox ol ol ol ol ol ol ol ol ol {
+                                    counter-reset: number9;
+                                }
+
+                                    #VezaRichTextBox ol ol ol ol ol ol ol ol ol li::marker {
+                                        content: counter(number1, decimal) "." counter(number2, decimal) "." counter(number3, decimal) "." counter(number4, decimal) "." counter(number5, decimal) "." counter(number6, decimal) "." counter(number7, decimal) "." counter(number8, decimal) "." counter(number9, decimal) " ";
+                                    }
+
+                                    #VezaRichTextBox ol ol ol ol ol ol ol ol ol li {
+                                        counter-increment: number9;
+                                    }
+
+                                    #VezaRichTextBox ol ol ol ol ol ol ol ol ol ol {
+                                        counter-reset: number10;
+                                    }
+
+                                        #VezaRichTextBox ol ol ol ol ol ol ol ol ol ol li::marker {
+                                            content: counter(number1, decimal) "." counter(number2, decimal) "." counter(number3, decimal) "." counter(number4, decimal) "." counter(number5, decimal) "." counter(number6, decimal) "." counter(number7, decimal) "." counter(number8, decimal) "." counter(number9, decimal) "." counter(number10, decimal) " ";
+                                        }
+
+                                        #VezaRichTextBox ol ol ol ol ol ol ol ol ol ol li {
+                                            counter-increment: number10;
+                                        }

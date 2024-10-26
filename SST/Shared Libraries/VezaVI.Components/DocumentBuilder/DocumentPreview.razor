@@ -1,0 +1,21 @@
+﻿@namespace VezaVI.Light.Components
+@if (ContractTransactionTemplateID != null) {
+    <embed src="@($"api/GenerateTemplatePDF/{ContractTransactionTemplateID}")" type="application/pdf" class="vi-document-preview">
+}
+else { 
+    <embed src="@($"api/GeneratePDF/{HistoryID}")" type="application/pdf" class="vi-document-preview">
+}
+
+@code {
+
+    [Parameter]
+    public Guid? ContractTransactionTemplateID { get; set; }
+
+    [Parameter]
+    public Guid? HistoryID { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+    }
+
+}

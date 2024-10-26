@@ -1,0 +1,57 @@
+﻿@page "/firmcontractclauses"
+@namespace SST.Client
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="card">
+    @if (Errors.Count() > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var error in Errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+    <div class="card-body">
+        <MaintenanceGrid TItem="ContractClause" EditUrl="firmcontractclause" Description="Contract Clause" DefaultPageSize="10" GridFilter="filters" >
+            <Columns>
+                <MaintenanceGridColumn Caption="Clause Code" PropertyName="Code" AllowSort="true" />
+            </Columns>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code {
+    private Guid _contractTypeID = Guid.Empty;
+    List<VezaVIGridFilter> filters = new List<VezaVIGridFilter>() {
+        new VezaVIGridFilter() { Field = "FirmID", Value = Guid.Empty.ToString() }
+    };
+
+    private Guid _firmID;
+    public Guid FirmID
+    {
+        get
+        {
+            return _firmID;
+        }
+        set
+        {
+            _firmID = value;
+        }
+    }
+
+    public async override Task SetParametersAsync(ParameterView parameters)
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        FirmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+        filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = FirmID.ToString(), Equals = true },
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = null, Equals = true }
+        };
+        StateHasChanged();
+    }
+
+    public IEnumerable<string> Errors { get; set; } = new List<string>();
+
+}

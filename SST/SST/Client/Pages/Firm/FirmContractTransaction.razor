@@ -1,0 +1,273 @@
+﻿@page "/firmcontracttransaction"
+@page "/firmcontracttransaction/{contracttransactionid:guid}"
+@inject IVezaDataService<ContractTransaction> ContractService
+@inject IVezaDataService<ContractTransactionDataField> ContractDataFieldService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@namespace SST.Client
+
+<div class="card">
+    @if (Errors.Count() > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var error in Errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+    <div class="card-body">
+        <VezaVITabControl>
+            <VezaVITab Caption="Transaction Type Info">
+                <EditForm Model="ContractTransaction" OnValidSubmit="SaveContractType" Context="item">
+                    <div class="form-group">
+                        <label for="Name">Name</label>
+                        <InputText Id="Name" Class="form-control" @bind-Value="ContractTransaction.Name" />
+                        <ValidationMessage For="@(() => ContractTransaction.Name)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Information">Description / Information</label>
+                        <InputText Id="Information" Class="form-control" @bind-Value="ContractTransaction.Information" />
+                        <ValidationMessage For="@(() => ContractTransaction.Information)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="ShowOnGenerateContracts">Show On Generate Contracts</label>
+                        <label class="switch">
+                            <InputCheckbox id="ShowOnGenerateContracts" Class="form-control" @bind-Value="ContractTransaction.ShowOnGenerateContracts"></InputCheckbox>
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="ShowOnOnlineStore">Show On Online Store</label>
+                        <label class="switch">
+                            <InputCheckbox id="ShowOnOnlineStore" Class="form-control" @bind-Value="ContractTransaction.ShowOnOnlineStore"></InputCheckbox>
+                            <span class="switch-slider round"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="BackgroundImage">Background Image</label>
+                        <div class="drag-drop-zone">
+                            <InputFile OnChange="UploadFile" MaxBufferSize="@MaxFileSize" />
+                            @uploadStatus
+                        </div>
+                    </div>
+                    @if (ContractTransaction.Base64Background != string.Empty)
+                    {
+                        <div class="form-group">
+                            <label for="BackgroundImage">Contract Tile Preview</label>
+                            <div class="vi-grid-tiles">
+                                <ContractTile Caption="@ContractTransaction.Name" Base64Background="@ContractTransaction.Base64Background" />
+                            </div>
+                        </div>
+                    }
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </EditForm>
+            </VezaVITab>
+            @if (ContractTransactionID != Guid.Empty)
+            {
+                <VezaVITab Caption="Data Fields">
+                    <MaintenanceGrid TItem="ContractTransactionDataField" Description="Data Field" DefaultPageSize="10" GridFilter="filters" OnModalSubmit="OnClose">
+                        <Columns>
+                            <MaintenanceGridColumn Caption="Field Name" PropertyName="FieldName" AllowSort="true" />
+                            <MaintenanceGridColumn Caption="Question Text" PropertyName="DisplayText" AllowSort="true" />
+                            <MaintenanceGridColumn Caption="Type of Field" PropertyName="TypeOfField" AllowSort="true">
+                                <Template Context="item">
+                                    <td>@((DataFieldType)item.TypeOfField)</td>
+                                </Template>
+                            </MaintenanceGridColumn>
+                        </Columns>
+                        <ModalContent Context="item">
+                            <div class="form-group">
+                                <label for="FieldName">Field Name</label>
+                                <InputText Id="FieldName" Class="form-control" @bind-Value="item.FieldName" />
+                                <ValidationMessage For="@(() => item.FieldName)" />
+                            </div>
+                            <div class="form-group">
+                                <label for="DisplayText">Question / Display Text</label>
+                                <InputText Id="DisplayText" Class="form-control" @bind-Value="item.DisplayText" />
+                                <ValidationMessage For="@(() => item.DisplayText)" />
+                            </div>
+                            <div class="form-group">
+                                <label for="TypeOfField">Type of Field</label>
+                                <select Id="TypeOfField" Class="form-control" @bind="item.TypeOfField">
+                                    <option value="0">Text Field</option>
+                                    <option value="1">Numeric Field</option>
+                                    <option value="2">Boolean Field</option>
+                                </select>
+                                <ValidationMessage For="@(() => item.TypeOfField)" />
+                            </div>
+                        </ModalContent>
+                    </MaintenanceGrid>
+                </VezaVITab>
+
+                <VezaVITab Caption="Grouped Data Fields">
+                    <MaintenanceGrid TItem="ContractTransactionEntity" EditUrl="firmcontracttransactionentity" Description="Grouped Data Field" DefaultPageSize="10" GridFilter="filters" OnBeforeUrlNavigate="BeforeUrlNavigate">
+                        <Columns>
+                            <MaintenanceGridColumn Caption="Grouped Data Name" PropertyName="Name" AllowSort="true" />
+                        </Columns>
+                    </MaintenanceGrid>
+                </VezaVITab>
+
+                <VezaVITab Caption="Transaction Contract Clause">
+                    <MaintenanceGrid TItem="ContractClause" EditUrl="firmcontractclause" Description="Contract Clause" DefaultPageSize="10" GridFilter="clauseFilters" OnBeforeUrlNavigate="BeforeUrlNavigate">
+                        <Columns>
+                            <MaintenanceGridColumn Caption="Clause Code" PropertyName="Code" AllowSort="true" />
+                        </Columns>
+                    </MaintenanceGrid>
+                </VezaVITab>
+                <VezaVITab Caption="Contract Templates">
+                    <MaintenanceGrid TItem="ContractTransactionTemplate" EditUrl="firmcontracttemplate" Description="Contract Template" DefaultPageSize="10" GridFilter="templatefilters" OnBeforeUrlNavigate="BeforeUrlNavigate">
+                        <Columns>
+                            <MaintenanceGridColumn Caption="Template Name" PropertyName="Name" AllowSort="true" />
+                        </Columns>
+                    </MaintenanceGrid>
+                </VezaVITab>
+                <VezaVITab Caption="Questions" LoadOnFocus="false">
+                    <QuestionNodeTreeBuilder ContractTransactionID="@ContractTransactionID" />
+                </VezaVITab>
+                @*<VezaVITab Caption="Contract Preview">
+            </VezaVITab>*@
+            }
+        </VezaVITabControl>
+    </div>
+</div>
+
+@code {
+    private Guid _contractTransactionID = Guid.Empty;
+
+    [Parameter]
+    public Guid ContractTransactionID
+    {
+        get
+        {
+            return _contractTransactionID;
+        }
+        set
+        {
+            _contractTransactionID = value;
+        }
+    }
+
+    List<VezaVIGridFilter> filters = new List<VezaVIGridFilter>() {
+        new VezaVIGridFilter() { Field = "ContractTransactionID", Value = Guid.Empty.ToString(), Equals = true }
+    };
+    List<VezaVIGridFilter> templatefilters = new List<VezaVIGridFilter>() {
+        new VezaVIGridFilter() { Field = "ContractTransactionID", Value = Guid.Empty.ToString(), Equals = true }
+    };
+    List<VezaVIGridFilter> clauseFilters = new List<VezaVIGridFilter>() {
+        new VezaVIGridFilter() { Field = "FirmID", Value = Guid.Empty.ToString() }
+    };
+
+    private ContractTransaction ContractTransaction { get; set; } = new ContractTransaction();
+    public IEnumerable<string> Errors { get; set; } = new List<string>();
+    public List<VezaPathNode> RootNodes = new List<VezaPathNode>();
+
+    public async override Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var firmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+        filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = _contractTransactionID.ToString(), Equals = true }
+        };
+        clauseFilters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = firmID.ToString(), Equals = true },
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = _contractTransactionID.ToString(), Equals = true }
+        };
+        templatefilters =  new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "IsActive", Value = "true", Equals = true },
+            new VezaVIGridFilter() { Field = "ContractTransactionID", Value = _contractTransactionID.ToString(), Equals = true }
+        };
+
+        StateHasChanged();
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        ContractTransaction = await ContractService.GetAsync(ContractTransactionID);
+
+        var fields = await ContractDataFieldService.GetAllAsync("FieldName", filters);
+        ContractTransactionDataFields = fields.Items;
+    }
+
+    private List<ContractTransactionDataField> ContractTransactionDataFields = new List<ContractTransactionDataField>();
+
+    const string DefaultStatus = "Drop a file here to view it, or click to choose a file";
+    const int MaxFileSize = 1 * 1024 * 1024; // 1MB
+    string uploadStatus = DefaultStatus;
+    string uploadFileContents = string.Empty;
+
+    async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            return;
+        }
+        else if (file.Size > MaxFileSize)
+        {
+            uploadStatus = $"That's too big. Max size: {MaxFileSize} bytes.";
+        }
+        else
+        {
+            uploadStatus = "Loading...";
+            byte[] buffer = new byte[0x1000];
+            byte[] fileBytes = new byte[0];
+            int numRead;
+            using var stream = file.OpenReadStream(MaxFileSize);
+            while ((numRead = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+            {
+                fileBytes = fileBytes.Concat(buffer).ToArray();
+            }
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append("data:image/png;base64,");
+            sb.Append(Convert.ToBase64String(fileBytes));
+            uploadFileContents = sb.ToString();
+            uploadStatus = $"File '{file.Name}' ready for saving.";
+        }
+    }
+
+    public async void SaveContractType()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var firmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+        ContractTransaction.FirmID = firmID;
+        if (uploadFileContents != string.Empty)
+            ContractTransaction.Base64Background = uploadFileContents;
+        Errors = new List<string>();
+        VezaAPISubmitResult result;
+        if (ContractTransactionID == Guid.Empty)
+        {
+            result = await ContractService.AddAsync(ContractTransaction);
+        }
+        else
+            result = await ContractService.UpdateAsync(ContractTransaction);
+        if (result.Successful)
+            uploadStatus = DefaultStatus;
+        if (!result.Successful)
+        {
+            Errors = result.Errors;
+        }
+        else if (ContractTransactionID == Guid.Empty)
+        {
+            NavigationManager.NavigateTo($"/firmcontracttransaction/{result.EntityID}");
+        }
+        StateHasChanged();
+    }
+
+    private void OnClose(VezaModalSubmitEventArgs<ContractTransactionDataField> args)
+    {
+        args.Item.ContractTransactionID = ContractTransactionID;
+        args.AllowClose = true;
+    }
+
+    private void BeforeUrlNavigate(VezaUrlEventArgs e)
+    {
+        e.Url += $"?ContractTransactionID={ContractTransactionID}";
+    }
+
+}

@@ -1,0 +1,33 @@
+﻿@page "/firmcontracttransactions"
+@attribute [Authorize(Roles = RoleConstants.FirmAdministrator)]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@namespace SST.Client
+
+<div class="card">
+    <div class="card-body">
+        <MaintenanceGrid DisplayAs="DisplayAs.Grid" EditUrl="firmcontracttransaction" TItem="ContractTransaction" Description="Contract Transaction" DefaultPageSize="10" GridFilter="filters">
+            <Columns>
+                <MaintenanceGridColumn Caption="Name" PropertyName="Name" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Show on Generate Contracts" PropertyName="ShowOnGenerateContracts" AllowSort="true" />
+            </Columns>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code
+{
+    Guid firmID;
+    IList<VezaVIGridFilter> filters = new List<VezaVIGridFilter>() { new VezaVIGridFilter() { Field = "FirmID", Value = Guid.Empty.ToString() } };
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        firmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+        filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = firmID.ToString(), Equals = true } ,
+             new VezaVIGridFilter() { Field = "IsActive", Value = "true".ToString(), Equals = true }
+        };
+        StateHasChanged();
+    }
+}

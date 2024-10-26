@@ -1,0 +1,88 @@
+﻿@page "/firmautomaticmeetingsetup"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject NavigationManager NavigationManager
+@inject IAutomaticMeetingService AutomaticMeetingService
+@namespace SST.Client
+
+<div class="card">
+    @if (ShowErrors)
+    {
+        <div class="alert alert-danger" role="alert">
+            <p>@Error</p>
+        </div>
+    }
+    <div class="card-body">
+        <EditForm Model="AutomaticMeetingSetupModel" OnValidSubmit="Update">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="AlllowMeetings">Allow Automatic Meetings</label>
+                <label class="switch">
+                    <InputCheckbox id="AlllowMeetings" Class="form-control" @bind-Value="AutomaticMeetingSetupModel.AllowMeetings"></InputCheckbox>
+                    <span class="switch-slider round"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="AllowPhysical">Allow Physical Meetings</label>
+                <label class="switch">
+                    <InputCheckbox id="AllowPhysical" Class="form-control" @bind-Value="AutomaticMeetingSetupModel.AllowPhysical"></InputCheckbox>
+                    <span class="switch-slider round"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="AllowElectronic">Allow Electronic Meetings</label>
+                <label class="switch">
+                    <InputCheckbox id="AllowElectronic" Class="form-control" @bind-Value="AutomaticMeetingSetupModel.AllowElectronicMeetings"></InputCheckbox>
+                    <span class="switch-slider round"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="AllowPublic">Allow Meetings on Public Holidays</label>
+                <label class="switch">
+                    <InputCheckbox id="AllowElectronic" Class="form-control" @bind-Value="AutomaticMeetingSetupModel.AllowPublicHolidays"></InputCheckbox>
+                    <span class="switch-slider round"></span>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </EditForm>
+    </div>
+</div>
+
+
+@code {
+    public AutomaticMeetingSetupModel AutomaticMeetingSetupModel = new AutomaticMeetingSetupModel();
+    private bool ShowErrors;
+    private string Error = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Load();
+    }
+
+    private async void Load()
+    {
+
+        AutomaticMeetingSetupModel = await AutomaticMeetingService.GetFirmMeetingSetup();
+        StateHasChanged();
+    }
+
+    private async Task Update()
+    {
+        ShowErrors = false;
+
+        //var tokenResult = await LocalStorage.GetItemAsync<string>("authToken");
+        var result = await AutomaticMeetingService.UpdateFirmMeetingSetup(AutomaticMeetingSetupModel);
+
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Error = result.Errors.FirstOrDefault();
+            ShowErrors = true;
+        }
+        //var response = await _httpClient.PostAsync("api/UpdateUserprofile", new StringContent(ProfileModelJson, Encoding.UTF8, "application/json"));
+    }
+}

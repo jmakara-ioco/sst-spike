@@ -1,0 +1,117 @@
+﻿@page "/firmclients"
+@attribute [Authorize(Roles = AssignedRoles)]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IVezaDataService<CustomerDataField> CustomerDataFieldService
+@namespace SST.Client
+
+
+<div class="card">
+    <div class="card-body">
+        <MaintenanceGrid TItem="Customer" Description="Customer" DefaultPageSize="10" GridFilter="filters" OnModalSubmit="OnClose" OnBeforeModalDisplay="OnNewModal">
+            <Columns>
+                <MaintenanceGridColumn Caption="Company Name" PropertyName="CompanyName" AllowSort="true" />
+                <MaintenanceGridColumn Caption="First Name" PropertyName="FirstName" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Last Name" PropertyName="LastName" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Email" PropertyName="Email" AllowSort="true" />
+            </Columns>
+            <ModalContent Context="item">
+                <div class="form-group">
+                    <label for="CompanyName">Company Name</label>
+                    <InputText Id="CompanyName" Class="form-control" @bind-Value="item.CompanyName" />
+                    <ValidationMessage For="@(() => item.CompanyName)" />
+                </div>
+                <div class="form-group">
+                    <label for="FirstName">First Name</label>
+                    <InputText Id="FirstName" Class="form-control" @bind-Value="item.FirstName" />
+                    <ValidationMessage For="@(() => item.FirstName)" />
+                </div>
+                <div class="form-group">
+                    <label for="LastName">Last Name</label>
+                    <InputText Id="FirstName" Class="form-control" @bind-Value="item.LastName" />
+                    <ValidationMessage For="@(() => item.LastName)" />
+                </div>
+                <div class="form-group">
+                    <label for="Email">Email</label>
+                    <InputText Id="Email" Class="form-control" @bind-Value="item.Email" />
+                    <ValidationMessage For="@(() => item.Email)" />
+                </div>
+                @foreach (var customerDataField in item.UserDefinedFields)
+                {
+                    var udfField = customerDataFields.FirstOrDefault(x => x.ID == customerDataField.Key);
+                    if (udfField != null)
+                    {
+                        <CustomEditor UdfToken="customerDataField" DataField="udfField" />
+                    }
+                }
+                <div class="form-group">
+                    <label for="AllowLogin">Allow Login</label>
+                    <label class="switch">
+                        <InputCheckbox id="AllowLogin" Class="form-control" @bind-Value="item.AllowLogin"></InputCheckbox>
+                        <span class="switch-slider round"></span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="AllowReceivingMails">Allow Receiving Emails</label>
+                    <label class="switch">
+                        <InputCheckbox id="AllowReceivingMails" Class="form-control" @bind-Value="item.AllowReceivingMails"></InputCheckbox>
+                        <span class="switch-slider round"></span>
+                    </label>
+                </div>
+            </ModalContent>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code
+{
+    private Guid _firmID;
+    public Guid FirmID
+    {
+        get
+        {
+            return _firmID;
+        }
+        set
+        {
+            _firmID = value;
+        }
+    }
+
+
+    private const string AssignedRoles = "" + RoleConstants.FirmAdministrator + "," + RoleConstants.FirmEmployee;
+
+    public List<CustomerDataField> customerDataFields = new List<CustomerDataField>();
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        FirmID = new Guid(user.Claims.FirstOrDefault(x => x.Type == "CompanyID").Value);
+        filters = new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = FirmID.ToString(), Equals = true }
+        };
+        var dataFields = await CustomerDataFieldService.GetAllAsync("FieldName", new List<VezaVIGridFilter>() {
+            new VezaVIGridFilter() { Field = "FirmID", Value = FirmID.ToString(), Equals = true }
+        });
+        customerDataFields = dataFields.Items;
+        StateHasChanged();
+    }
+
+    IList<VezaVIGridFilter> filters;
+
+    private void OnClose(VezaModalSubmitEventArgs<Customer> args)
+    {
+        args.Item.FirmID = FirmID;
+        args.AllowClose = true;
+    }
+
+    private void OnNewModal(Customer customer)
+    {
+        List<CustomerUdfToken> userDefinedFields = new List<CustomerUdfToken>();
+        foreach (var udf in customerDataFields)
+        {
+            userDefinedFields.Add(new CustomerUdfToken() { Key = udf.ID, Value = string.Empty });
+        }
+        customer.UserDefinedFields = userDefinedFields;
+    }
+}

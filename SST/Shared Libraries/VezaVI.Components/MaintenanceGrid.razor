@@ -1,0 +1,514 @@
+﻿@typeparam TItem
+@inject IVezaDataService<TItem> VezaDataService
+@inherits MaintenanceGridBase
+@namespace VezaVI.Light.Components
+@inject IModalService ModalService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@if ((page == null) || (page.Items == null))
+{
+    <h1 class="vi-center-text">Loading @VezaVIUtils.Plural(Description)...</h1>
+}
+else
+{
+<CascadingValue Value="this">
+    @if ((Caption != string.Empty) && (DisplayAs != DisplayAs.Tiles))
+    {
+        <h1 class="vi-center-text">@Caption</h1>
+    }
+    <div class="search-form-wrapper">
+        @if (ShowSearchBar)
+        {
+            <div class="input-group">
+                @if (DisplayAs != DisplayAs.Tiles)
+                {
+                    if (ShowAddButton)
+                    {
+                        <button class="@ButtonCSS" @onclick="(() => PrepareForEdit(null))">Create New</button>
+                    }
+                    if (ShowImportButton)
+                    {
+                        <button class="@ButtonCSS" @onclick="Import">Import</button>
+                    }
+                }
+                <input type="text" @bind="SearchText" class="search form-control" placeholder="Search...">
+                <span class="vi-maintgrid-search" @onclick="Search">
+                    <span class="oi oi-magnifying-glass"></span>
+                </span>
+            </div>
+        }
+        else
+        {
+            if (DisplayAs != DisplayAs.Tiles)
+            {
+                <div class="input-group" style="font-size: 2rem; padding: 0.5rem; writing-mode: vertical-rl; color: var(--MenuHeadingColor);">
+                    @if (ShowAddButton)
+                    {
+                        <span class="oi oi-plus" @onclick="(() => PrepareForEdit(null))"></span>
+                    }
+                    @if (ShowImportButton)
+                    {
+                        <span class="oi oi-cloud-upload" @onclick="Import"></span>
+                    }
+                </div>
+            }
+        }
+    </div>
+    @if (DisplayAs == DisplayAs.Grid)
+    {
+        <div class="vi-panel">
+            <div class="vi-scrollpanel">
+                <table class="vi-maintgrid-table">
+                    <thead class="vi-maintgrid-table-thead">
+                        <tr>
+                            @Columns
+                            @if (ShowEditButton)
+                            {
+
+                                <th>@EditButtonCaption</th>
+                            }
+                            @if (ShowDeleteButton)
+                            {
+                                <th>@DeleteButtonCaption</th>
+                            }
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (page.Items.Count == 0)
+                        {
+                            <tr style="height: 50px;">
+                                <td class="no-rows"><h5>No records found</h5></td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in page.Items)
+                            {
+                    <tr>
+                        @foreach (var column in columns)
+                        {
+                            @if (column.Template is null)
+                            {
+                                if (item.GetType().GetSmartProperty(column.PropertyName) != null)
+                                {
+                                    <td>@TypeExtensions.GetSmartPropertyValue(item, column.PropertyName)</td>
+                                }
+                                else
+                                {
+                                    <td>@column.PropertyName does not exist on Entity</td>
+                                }
+                            }
+                            else
+                            {
+                                @column.Template(item)
+                            }
+                        }
+                        @if (ShowEditButton)
+                        {
+                            if (EditButtonIcon != null)
+                            {
+                                <td><button class="@ButtonCSS" @onclick="(() => PrepareForEdit(item))" data-toggle="modal" data-target="#confirmDeleteModal">@EditButtonIcon</button></td>
+                            }
+                            else
+                            {
+                                <td><input type="button" class="@ButtonCSS" @onclick="(() => PrepareForEdit(item))" data-toggle="modal" data-target="#taskModal" value=@EditButtonCaption /></td>
+                            }
+                        }
+                        @if (ShowDeleteButton)
+                        {
+                            if (EditButtonIcon != null)
+                            {
+                                <td><button class="@ButtonCSS" @onclick="(() => PrepareForDelete(item))" data-toggle="modal" data-target="#confirmDeleteModal">@DeleteButtonIcon</button></td>
+                            }
+                            else
+                            {
+                                <td><input type="button" class="@ButtonCSS" @onclick="(() => PrepareForDelete(item))" data-toggle="modal" data-target="#confirmDeleteModal" value=@DeleteButtonCaption /></td>
+                            }
+
+                        }
+                    </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    }
+    else if (DisplayAs == DisplayAs.PanelRows)
+    {
+        <div class="vi-panel">
+            <div class="vi-scrollpanel">
+                <div class="vi-grid-tile-row-container">
+                    <div class="vi-grid-tile-row">
+                        <table>
+                            @Columns
+                            @if (ShowEditButton)
+                            {
+                                <td>@EditButtonCaption</td>
+                            }
+                            @if (ShowDeleteButton)
+                            {
+                                <td>@DeleteButtonCaption</td>
+                            }
+                        </table>
+                    </div>
+                    @foreach (var item in page.Items)
+                    {
+                        <div class="vi-grid-tile-row">
+                            <table>
+                                <tr>
+                                    @foreach (var column in columns)
+                                    {
+                                        @if (column.Template is null)
+                                        {
+                                            if (item.GetType().GetSmartProperty(column.PropertyName) != null)
+                                            {
+                                    <td>@TypeExtensions.GetSmartPropertyValue(item, column.PropertyName)</td>
+                                            }
+                                            else
+                                            {
+                                                <td>@column.PropertyName does not exist on Entity</td>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <td>@column.Template(item)</td>
+                                        }
+                                    }
+                                    @if (ShowEditButton)
+                                    {
+                                        <td><input type="button" class="@ButtonCSS" @onclick="(() => PrepareForEdit(item))" data-toggle="modal" data-target="#taskModal" value=@EditButtonCaption /></td>
+                                    }
+                                    @if (ShowDeleteButton)
+                                    {
+                                        <td><input type="button" class="@ButtonCSS" @onclick="(() => PrepareForDelete(item))" data-toggle="modal" data-target="#confirmDeleteModal" value=@DeleteButtonCaption /></td>
+                                    }
+                                </tr>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+<VezaHeadingTile HeaderCaption="@Caption">
+    @if (ShowAddButton)
+    {
+        <span class="vi-program-icon-right vi-maintenance-button" title="@($"Add New {Description}")">
+            <span @onclick="@(() => PrepareForEdit(null))" class=" vi-maintenance-icon vi-maintenance-add-button"></span>
+        </span>
+    }
+    @Columns
+    @if (page.Items.Count == 0)
+    {
+        <div class="vi-grid-tile-message"><center><h5>No Records found</h5></center></div>
+    }
+    else
+    {
+        <VezaVITileControl Columns="2">
+            @foreach (var item in page.Items)
+            {
+                <VezaVITile CssClass="vi-grid-tile-panel" Columns="1">
+
+                    <div class="vi-maintenance-button-toolbar">
+                        @if (AdditionalIcons != null)
+                        {
+                            @AdditionalIcons(item)
+                        }
+                        @if (ShowDeleteButton)
+                        {
+                            <span class="vi-maintenance-button" title="@($"Delete {Description}")">
+                                <span @onclick="@(() => PrepareForDelete(item))" class="vi-maintenance-icon vi-maintenance-delete-button"></span>
+                            </span>
+                        }
+                        @if (ShowEditButton)
+                        {
+                            <span class="vi-maintenance-button" title="@($"Edit {Description}")">
+                                <span @onclick="@(() => PrepareForEdit(item))" class="vi-maintenance-icon vi-maintenance-edit-button"></span>
+                            </span>
+                        }
+                    </div>
+
+                    @foreach (var column in columns)
+                    {
+                        <div class="form-group">
+                            @if (column.AllowSort)
+                            {
+                                <label for="@($"{column.PropertyName}_{column.Id}")" class="vi-tile-grid-heading"><i @onclick="@(() => SortAsync(column.PropertyName))" class="@(SortIndicator(column.PropertyName))" style="margin-right: 3px;"></i><span @onclick="@(() => SortAsync(column.PropertyName))">@column.Caption</span></label>
+                            }
+                            else
+                            {
+                                <label for="@column.PropertyName" class="vi-tile-grid-heading">@column.Caption</label>
+                            }
+                            @if (column.Template is null)
+                            {
+                                <label Id="@column.PropertyName">@TypeExtensions.GetSmartPropertyValue(item, column.PropertyName)</label>
+                            }
+                            else
+                            {
+                                @column.Template(item)
+                            }
+                        </div>
+                    }
+                </VezaVITile>
+            }
+        </VezaVITileControl>
+    }
+</VezaHeadingTile>
+    }
+</CascadingValue>
+    <Pager PageIndex="page.PageIndex" TotalPages="page.TotalPages" OnClick="PageIndexChanged"
+           HasNextPage="page.HasNextPage" HasPreviousPage="page.HasPreviousPage">
+    </Pager>
+}
+
+@code
+{
+    PaginatedList<TItem> page;
+    private string SearchText { get; set; }
+    private string CurrentSearchText { get; set; }
+
+    private List<MaintenanceGridColumn> columns = new List<MaintenanceGridColumn>();
+    public override void AddColumn(MaintenanceGridColumn column)
+    {
+        if (!columns.Contains(column))
+        {
+            columns.Add(column);
+            StateHasChanged();
+        }
+    }
+
+    public override void RemoveColumn(MaintenanceGridColumn column)
+    {
+        columns.Remove(column);
+        StateHasChanged();
+    }
+
+    [Parameter]
+    public RenderFragment<TItem> AdditionalIcons { get; set; }
+
+    [Parameter]
+    public string EditUrl { get; set; } = string.Empty;
+    [Parameter]
+    public string AdditionalInfo { get; set; } = string.Empty;
+    [Parameter]
+    public RenderFragment Columns { get; set; }
+    [Parameter]
+    public string Description { get; set; }
+    [Parameter]
+    public string Caption { get; set; } = string.Empty;
+    [Parameter]
+    public string DeleteButtonCaption { get; set; } = "Delete";
+    [Parameter]
+    public string EditButtonCaption { get; set; } = "Edit";
+    [Parameter]
+    public RenderFragment EditButtonIcon { get; set; }
+    [Parameter]
+    public RenderFragment DeleteButtonIcon { get; set; }
+    [Parameter]
+    public int DefaultPageSize { get; set; } = 20;
+    [Parameter]
+    public string ButtonCSS { get; set; } = "btn btn-primary";
+
+    [Parameter]
+    public RenderFragment<TItem> ModalContent { get; set; }
+
+    private IList<VezaVIGridFilter> _gridFilter/* = new List<VezaVIGridFilter>()*/;
+    [Parameter]
+    public IList<VezaVIGridFilter> GridFilter {
+        get
+        {
+            return _gridFilter;
+        }
+        set
+        {
+            if (_gridFilter == value)
+                return;
+            _gridFilter = value;
+            new Task(async () =>
+            {
+                await Refresh();
+            }).Start();
+        }
+    }
+
+    public delegate Task RefreshGridDataSource();
+    public event RefreshGridDataSource OnRefresh;
+
+    [Parameter]
+    public EventCallback<VezaModalSubmitEventArgs<TItem>> OnModalSubmit { get; set; }
+    [Parameter]
+    public EventCallback<VezaModalSubmitEventArgs<TItem>> OnAfterModalSubmit { get; set; }
+    [Parameter]
+    public EventCallback<TItem> OnBeforeModalDisplay { get; set; }
+    [Parameter]
+    public EventCallback<VezaUrlEventArgs> OnBeforeUrlNavigate { get; set; }
+    [Parameter]
+    public string DeletePrompt { get; set; } = "";
+    private string GetDeletePrompt()
+    {
+        if (!string.IsNullOrEmpty(DeletePrompt))
+            return DeletePrompt;
+        return $"Are you sure you wish to {DeleteButtonCaption} this record?";
+    }
+    [Parameter]
+    public bool ShowEditButton { get; set; } = true;
+    [Parameter]
+    public bool ShowDeleteButton { get; set; } = true;
+    [Parameter]
+    public bool ShowAddButton { get; set; } = true;
+    [Parameter]
+    public bool ShowSearchBar { get; set; } = true;
+    [Parameter]
+    public bool ShowImportButton { get; set; } = false;
+
+    public EventCallback<VezaModalSubmitEventArgs<TItem>> AfterModalSubmit { get; set; }
+    public EventCallback<TItem> BeforeModalDisplay { get; set; }
+    public EventCallback<bool> AfterImport { get; set; }
+
+    private async void PrepareForEdit(TItem item)
+    {
+        if (EditUrl != string.Empty)
+        {
+            string url = string.Empty;
+            if (item != null)
+                url = $"{EditUrl}/{item.GetID().ToString()}"; // "customer/{0}"
+            else
+                url = EditUrl;
+            /*Before Redirect*/
+            VezaUrlEventArgs args = new VezaUrlEventArgs(url);
+            if (OnBeforeUrlNavigate.HasDelegate)
+                await OnBeforeUrlNavigate.InvokeAsync(args);
+            /*Navigate*/
+            if (!args.Cancel)
+                NavigationManager.NavigateTo(args.Url);
+        }
+        else
+        {
+            var parameters = new ModalParameters();
+            if (item != null)
+                parameters.Add("ID", item.GetID());
+            else
+            {
+                parameters.Add("ID", null);
+            }
+            parameters.Add("ModalContent", ModalContent);
+            parameters.Add("OnModalSubmit", OnModalSubmit);
+            parameters.Add("AfterModalSubmit", AfterModalSubmit);
+            parameters.Add("BeforeModalDisplay", BeforeModalDisplay);
+
+            ModalService.Show(typeof(MaintenanceGridModal<TItem>), (item == null ? $"New {Description}" : $"Edit {Description}"), parameters);
+        }
+    }
+
+    private async Task PrepareForDelete(TItem item)
+    {
+        if (await JSRuntime.Confirm(GetDeletePrompt()))
+        {
+            var result = await VezaDataService.DeleteAsync(item.GetID());
+            if (!result.Successful) {
+                ModalParameters param = new ModalParameters();
+                param.Add("Message", result.Errors.FirstOrDefault());
+                ModalService.Show(typeof(MsgBox), "Delete Failed", param);
+            }
+            await Refresh();
+        }
+    }
+
+    private async Task RefreshScreen()
+    {
+        //await InvokeAsync(() => StateHasChanged());
+        StateHasChanged();
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        OnRefresh += RefreshScreen;
+        AfterModalSubmit = EventCallback.Factory.Create<VezaModalSubmitEventArgs<TItem>>(this, RefreshGrid);
+        BeforeModalDisplay = EventCallback.Factory.Create<TItem>(this, NewModalShowing);
+        AfterImport = EventCallback.Factory.Create<bool>(this, AfterImportMethod);
+    }
+
+    public async Task NewModalShowing(TItem item)
+    {
+        if (OnBeforeModalDisplay.HasDelegate)
+        {
+            await OnBeforeModalDisplay.InvokeAsync(item);
+        }
+    }
+
+    public async Task RefreshGrid(VezaModalSubmitEventArgs<TItem> args)
+    {
+        await Refresh();
+        if (OnAfterModalSubmit.HasDelegate)
+        {
+            await OnAfterModalSubmit.InvokeAsync(args);
+        }
+        OnRefresh?.Invoke();
+    }
+
+    public async Task Refresh()
+    {
+        page = await VezaDataService.GetListAsync(GridFilter, PageNumber, DefaultPageSize, CurrentSortField, CurrentSortOrder, CurrentSearchText);
+        OnRefresh?.Invoke();
+    }
+
+    public override async Task SortAsync(string sortField)
+    {
+        if (sortField.Equals(CurrentSortField))
+        {
+            CurrentSortOrder = CurrentSortOrder.Equals("Asc") ? "Desc" : "Asc";
+        }
+        else
+        {
+            CurrentSortField = sortField;
+            CurrentSortOrder = "Asc";
+        }
+        await Refresh();
+    }
+
+    public override string SortIndicator(string sortField)
+    {
+        if (sortField.Equals(CurrentSortField))
+        {
+            return CurrentSortOrder.Equals("Asc") ? "oi oi-sort-ascending" : "oi oi-sort-descending";
+        }
+        return "oi oi-elevator";
+    }
+
+    public async void PageIndexChanged(int newPageNumber)
+    {
+        if (newPageNumber < 1 || newPageNumber > page.TotalPages)
+        {
+            return;
+        }
+        PageNumber = newPageNumber;
+        await Refresh();
+    }
+
+    public async void Search()
+    {
+        PageNumber = 1;
+        CurrentSearchText = SearchText;
+        await Refresh();
+    }
+
+    private async Task Import()
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("AfterImport", EventCallback.Factory.Create<bool>(this, AfterImport));
+        parameters.Add("AdditionalInfo", AdditionalInfo);
+        ModalService.Show(typeof(MaintenanceGridImportModal<TItem>), $"Import {VezaVIUtils.Plural(Description)}", parameters);
+    }
+
+    private async Task AfterImportMethod(bool args)
+    {
+        await Refresh();
+    }
+
+}

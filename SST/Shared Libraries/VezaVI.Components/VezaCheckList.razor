@@ -1,0 +1,30 @@
+﻿<h3>@VezaVIUtils.Plural(Type)</h3>
+<hr />
+@if ((CheckListItems != null) && (CheckListItems.Count > 0))
+{
+    <ul class="vi-veza-checked-list">
+        @foreach (var checkItem in CheckListItems)
+        {
+            <li class="vi-veza-checked-list-item">
+                <label>
+                    <a href="api/GetFile/@checkItem.ID" target="_blank">
+                        <span class="oi oi-cloud-download cashbox-icon"></span>
+                    </a>
+                    <input type="checkbox" @bind-value="@checkItem.Checked" />
+                    <span>@checkItem.Caption</span>
+                </label>
+                
+            </li>
+        }
+    </ul>
+}
+else {
+<p>No @VezaVIUtils.Plural(Type) uploaded, check back later.</p>
+}
+
+@code {
+    [Parameter]
+    public List<VezaCheckListItem> CheckListItems { get; set; }
+    [Parameter]
+    public string Type { get; set; }
+}

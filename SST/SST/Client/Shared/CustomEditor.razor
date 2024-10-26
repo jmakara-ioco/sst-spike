@@ -1,0 +1,60 @@
+﻿@if (DataField.TypeOfField == DataFieldType.Text)
+{
+
+<div class="form-group">
+    <label for="@DataField.ID">@DataField.FieldName</label>
+    <InputText Id="@DataField.ID" Class="form-control" @bind-Value="UdfToken.Value" />
+    <ValidationMessage For="@(() => UdfToken.Value)" />
+</div>
+}
+else if (DataField.TypeOfField == DataFieldType.Boolean)
+{
+<div class="form-group">
+    <label for="@DataField.ID">@DataField.FieldName</label>
+    <label class="switch">
+        <InputCheckbox id="@DataField.ID" Class="form-control" @bind-Value="ValueAsBoolean" />
+        <span class="switch-slider round"></span>
+    </label>
+    <ValidationMessage For="@(() => UdfToken.Value)" />
+</div>
+}
+else if (DataField.TypeOfField == DataFieldType.Date)
+{
+<div class="form-group">
+    <label for="@DataField.ID">@DataField.FieldName</label>
+    <InputDate id="@DataField.ID" Class="form-control" @bind-Value="UdfToken.Value"></InputDate>
+</div>
+}
+else if (DataField.TypeOfField == DataFieldType.Numeric)
+{
+<div class="form-group">
+    <label for="@DataField.ID">@DataField.FieldName</label>
+    <InputNumber id="@DataField.ID" Class="form-control" @bind-Value="UdfToken.Value"></InputNumber>
+</div>
+}
+
+
+@code {
+    [Parameter]
+    public CustomerUdfToken UdfToken { get; set; }
+    [Parameter]
+    public CustomerDataField DataField { get; set; }
+
+    public bool ValueAsBoolean
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(UdfToken.Value))
+            {
+                return false;
+            }
+            return Convert.ToBoolean(UdfToken.Value);
+        }
+        set
+        {
+            UdfToken.Value = value.ToString();
+        }
+    }
+}
+
+

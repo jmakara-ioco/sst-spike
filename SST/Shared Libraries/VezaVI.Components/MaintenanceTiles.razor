@@ -1,0 +1,125 @@
+﻿@typeparam TItem
+@inject IVezaDataService<TItem> VezaDataService
+@inherits MaintenanceGridBase
+@namespace VezaVI.Light.Components
+@inject IModalService ModalService
+
+@if ((page == null) || (page.Items == null))
+{
+    <h1 class="vi-center-text">Loading @Description...</h1>
+}
+else
+{
+    <CascadingValue Value="this">
+        <h1 class="vi-center-text">@Description</h1>
+        <div class="search-form-wrapper">
+            <div class="input-group">
+                <input type="text" @bind="SearchText" class="search form-control" placeholder="Search...">
+                <span class="vi-maintgrid-search" @onclick="Search">
+                    <span class="oi oi-magnifying-glass"></span>
+                </span>
+            </div>
+        </div>
+        <div class=".vi-grid-container">
+            @if (page.Items.Count == 0)
+            {
+                <div class=".vi-grid-message">
+                    <h5>No tiles found</h5>
+                </div>
+            }
+            else
+            {
+                foreach (var item in page.Items)
+                {
+                    <div class=".vi-grid-tile">
+                        @Tile(item)
+                    </div>
+                }
+            }
+        </div>
+    </CascadingValue>
+    <Pager PageIndex="page.PageIndex" TotalPages="page.TotalPages" OnClick="PageIndexChanged"
+            HasNextPage="page.HasNextPage" HasPreviousPage="page.HasPreviousPage">
+    </Pager>
+ }
+
+@code
+{
+    PaginatedList<TItem> page;
+    private string SearchText { get; set; }
+    private string CurrentSearchText { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> Tile { get; set; }
+    [Parameter]
+    public string Description { get; set; }
+    [Parameter]
+    public string ModalDescription { get; set; }
+    [Parameter]
+    public int DefaultPageSize { get; set; } = 20;
+    [Parameter]
+    public RenderFragment<TItem> ModalContent { get; set; }
+    [Parameter]
+    public IList<VezaVIGridFilter> GridFilter { get; set; } = null;
+    [Parameter]
+    public EventCallback<VezaModalSubmitEventArgs<TItem>> OnModalSubmit { get; set; }
+    [Parameter]
+    public EventCallback<VezaModalSubmitEventArgs<TItem>> OnAfterModalSubmit { get; set; }
+    public EventCallback<VezaModalSubmitEventArgs<TItem>> AfterModalSubmit { get; set; }
+
+    private void PrepareForEdit(TItem item)
+    {
+        var parameters = new ModalParameters();
+        if (item != null)
+            parameters.Add("ID", item.GetID());
+        else
+            parameters.Add("ID", null);
+        parameters.Add("ModalContent", ModalContent);
+        parameters.Add("OnModalSubmit", OnModalSubmit);
+        parameters.Add("AfterModalSubmit", AfterModalSubmit);
+        ModalService.Show(typeof(MaintenanceGridModal<TItem>), ModalDescription, parameters);
+    }
+
+    private void PrepareForDelete(TItem item)
+    {
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        page = await VezaDataService.GetListAsync(GridFilter, PageNumber, DefaultPageSize, CurrentSortField, CurrentSortOrder, CurrentSearchText);
+        AfterModalSubmit = EventCallback.Factory.Create<VezaModalSubmitEventArgs<TItem>>(this, RefreshGrid);
+    }
+
+    public async Task RefreshGrid(VezaModalSubmitEventArgs<TItem> args)
+    {
+        await Refresh();
+        if (OnAfterModalSubmit.HasDelegate)
+        {
+            await OnAfterModalSubmit.InvokeAsync(args);
+        }
+    }
+
+    public async Task Refresh()
+    {
+        page = await VezaDataService.GetListAsync(GridFilter, PageNumber, DefaultPageSize, CurrentSortField, CurrentSortOrder, CurrentSearchText);
+        StateHasChanged();
+    }
+
+    public async void PageIndexChanged(int newPageNumber)
+    {
+        if (newPageNumber < 1 || newPageNumber > page.TotalPages)
+        {
+            return;
+        }
+        PageNumber = newPageNumber;
+        await Refresh();
+    }
+
+    public async void Search()
+    {
+        PageNumber = 1;
+        CurrentSearchText = SearchText;
+        await Refresh();
+    }
+
+}

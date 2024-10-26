@@ -1,0 +1,130 @@
+﻿@namespace VezaVI.Light.Components
+@inject NavigationManager NavigationManager
+
+@if (showWizard)
+{
+    <CascadingValue Value="this">
+        <div class="blazored-modal-container blazored-modal-center">
+            <div class="blazored-modal-overlay"></div>
+            <div class="blazored-modal @WizardClass" style="position: relative;">
+                <div class="blazored-modal-content">
+                    @ChildContent
+                    <div class="wizard-buttons">
+                        <center>
+                            @if (_currentPage > 0)
+                            {
+                                <button style="margin-right: 10px;" class="btn btn-primary" @onclick="() => OnMove(false)">@ActivePage.BackButtonText</button>
+                            }
+                            @if ((_currentPage > -1) && (_currentPage < Pages.Count - 1))
+                            {
+                                <button class="btn btn-primary" @onclick="() => OnMove(true)">@ActivePage.NextButtonText</button>
+                            }
+                            @if (_currentPage == Pages.Count - 1)
+                            {
+                                <button class="btn btn-primary" @onclick="() => OnMove(true)">Finish</button>
+                            }
+                            <button class="btn btn-primary" @onclick="Close">Close</button>
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </CascadingValue>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public string WizardLastPageCSS { get; set; }
+    [Parameter]
+    public string WizardCSS { get; set; }
+    private bool showWizard = true;
+
+    private int _currentPage = 0;
+
+    private string WizardClass
+    {
+        get
+        {
+            return (_currentPage == Pages.Count - 1) ? WizardLastPageCSS : WizardCSS;
+        }
+    }
+
+    private List<VezaVIWizardPageBase> Pages = new List<VezaVIWizardPageBase>();
+
+    public async Task AddPage(VezaVIWizardPageBase page)
+    {
+        if (Pages.Count == 0)
+            await page.OnLoad();
+        Pages.Add(page);
+        StateHasChanged();
+    }
+
+    public void RemovePage(VezaVIWizardPageBase page)
+    {
+        Pages.Remove(page);
+        StateHasChanged();
+    }
+
+    private VezaVIWizardPageBase ActivePage
+    {
+        get
+        {
+            if ((Pages.Count > 0) && (_currentPage > -1) && (_currentPage <= Pages.Count - 1))
+                return Pages[_currentPage];
+            return null;
+        }
+    }
+
+    public bool IsActivePage(VezaVIWizardPageBase page)
+    {
+        return (ActivePage == page);
+    }
+
+    private async Task<bool> OnMove(bool moveForward)
+    {
+        if (Pages.Count > 0)
+        {
+            if (moveForward)
+            {
+                //Validate Current Page
+                if ((_currentPage > -1) && (_currentPage <= Pages.Count - 1))
+                {
+                    if (!(await Pages[_currentPage].OnValidate() && await Pages[_currentPage].OnSave()))
+                        return false;
+                }
+                if (_currentPage < Pages.Count - 1)
+                {
+                    _currentPage++;
+                    while ((Pages[_currentPage].ShouldSkip) && (_currentPage < Pages.Count - 1))
+                        _currentPage++;
+                }
+                else if (_currentPage == Pages.Count - 1)
+                {
+                    _currentPage = -1;
+                }
+            }
+            else
+            {
+                if (_currentPage > 0)
+                    _currentPage--;
+            }
+            if ((_currentPage > -1) && (_currentPage <= Pages.Count - 1))
+            {
+                await Pages[_currentPage].OnLoad();
+            }
+            else
+            {
+                showWizard = false;
+            }
+        }
+        await InvokeAsync(() => StateHasChanged());
+        return true;
+    }
+
+    public void Close()
+    {
+        showWizard = false;
+    }
+}

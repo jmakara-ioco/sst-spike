@@ -1,0 +1,302 @@
+﻿@inject AuthenticationStateProvider Provider
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject ISubscriptionService SubscriptionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href=""></a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <div class="sidebar-wrapper"></div>
+    <ul class="nav flex-column">
+        @if (SubscriptionService.IsActive)
+        {
+            <AuthorizeView Roles="@($"{RoleConstants.FirmAdministrator},{RoleConstants.SystemAdministrator}")">
+                <li class="nav-link-header">
+                    <a>Settings</a>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{RoleConstants.SystemAdministrator}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="emailsettings">
+                        <span class="oi oi-dial" aria-hidden="true"></span> Email Settings
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="paymentgate">
+                        <span class="oi oi-dial" aria-hidden="true"></span> Payment Gate
+                    </NavLink>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{RoleConstants.FirmAdministrator}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmbranding">
+                        <span class="oi oi-image" aria-hidden="true"></span> Firm Branding
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmemailsettings">
+                        <span class="oi oi-dial" aria-hidden="true"></span> Email Settings
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmclientfields">
+                        <span class="oi oi-envelope-open" aria-hidden="true"></span> Client Additional Fields
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="paymentgate">
+                        <span class="oi oi-dial" aria-hidden="true"></span> Online Store Setup
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="store">
+                        <span class="oi oi-dial" aria-hidden="true"></span> Online Store
+                    </NavLink>
+                </li>
+                @*<li class="nav-item px-3">
+            <NavLink class="nav-link" href="firmautomaticmeetingsetup">
+                <span class="oi oi-briefcase" aria-hidden="true"></span> Setup Auto Meetings
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="firmonlinestoreconfig">
+                <span class="oi oi-briefcase" aria-hidden="true"></span> Setup Online Store
+            </NavLink>
+        </li>*@
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{RoleConstants.SystemAdministrator},{RoleConstants.SystemEmployee},{RoleConstants.FirmAdministrator},{RoleConstants.FirmEmployee},{RoleConstants.ClientAdministrator}")">
+                <li class="nav-link-header">
+                    <a>Maintenance</a>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{RoleConstants.ClientAdministrator}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="clientusers">
+                        <span class="oi oi-envelope-open" aria-hidden="true"></span> Users
+                    </NavLink>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="@($"{RoleConstants.FirmAdministrator}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmusers">
+                        <span class="oi oi-envelope-open" aria-hidden="true"></span> Firm Users
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmemailtemplates">
+                        <span class="oi oi-envelope-open" aria-hidden="true"></span> Email Templates
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmcontractclauses">
+                        <span class="oi oi-envelope-open" aria-hidden="true"></span> General Clauses For All Contracts
+
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmcontracttransactions">
+                        <span class="oi oi-envelope-open" aria-hidden="true"></span> Setup Contracts
+                    </NavLink>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{RoleConstants.FirmAdministrator},{RoleConstants.FirmEmployee}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmclients">
+                        <span class="oi oi-fork" aria-hidden="true"></span> Clients
+                    </NavLink>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="@RoleConstants.SystemAdministrator">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="users">
+                        <span class="oi oi-people" aria-hidden="true"></span> Users
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="introsteps">
+                        <span class="oi oi-people" aria-hidden="true"></span> Intro Steps
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="countries">
+                        <span class="oi oi-people" aria-hidden="true"></span> Countries
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="inviteclient">
+                        <span class="oi oi-fork" aria-hidden="true"></span> Invite Client
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="transactionhistory">
+                        <span class="oi oi-fork" aria-hidden="true"></span> Transaction History
+                    </NavLink>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="@($"{RoleConstants.FirmAdministrator},{RoleConstants.FirmEmployee},{RoleConstants.ClientAdministrator},{RoleConstants.ClientUser}")">
+                <li class="nav-link-header">
+                    <a>Contracts</a>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{RoleConstants.FirmAdministrator},{RoleConstants.FirmEmployee}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmgeneratecontract">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> Generate a Contract
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmcontracthistory">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> Contract History
+                    </NavLink>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="@($"{RoleConstants.ClientAdministrator},{RoleConstants.ClientUser}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="clientgeneratecontract">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> Generate a Contract
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="clientcontracthistory">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> Contract History
+                    </NavLink>
+                </li>
+            </AuthorizeView>
+        }
+        @*<AuthorizeView Roles="@($"{RoleConstants.FirmAdministrator},{RoleConstants.FirmEmployee},{RoleConstants.ClientAdministrator},{RoleConstants.ClientUser}")">
+                <li class="nav-link-header">
+                    <a>Meetings</a>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{RoleConstants.FirmAdministrator},{RoleConstants.FirmEmployee}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmmymeetings">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> My Meetings
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="firmsetupmymeetings">
+                        <span class="oi oi-fork" aria-hidden="true"></span> Setup My Meetings
+                    </NavLink>
+                </li>
+            </AuthorizeView>
+            <AuthorizeView Roles="@($"{RoleConstants.ClientAdministrator},{RoleConstants.ClientUser}")">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="clientmymeetings">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> My Meetings
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="clientrequestmeeting">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> Request Meeting
+                    </NavLink>
+                </li>
+            </AuthorizeView>*@
+        <li class="nav-link-header">
+            <a>Profiles</a>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="myprofile">
+                <span class="oi oi-person" aria-hidden="true"></span> My Profile
+            </NavLink>
+        </li>
+        <AuthorizeView Roles="@RoleConstants.FirmAdministrator">
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="firmprofile">
+                    <span class="oi oi-briefcase" aria-hidden="true"></span> My Firm Profile
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="firmsubscriptionplans">
+                    <span class="oi oi-basket" aria-hidden="true"></span> Firm Subscription
+                </NavLink>
+            </li>
+        </AuthorizeView>
+        <AuthorizeView Roles="@RoleConstants.ClientAdministrator">
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="clientprofile">
+                    <span class="oi oi-briefcase" aria-hidden="true"></span> My Client Profile
+                </NavLink>
+            </li>
+        </AuthorizeView>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="changepassword">
+                <span class="oi oi-code" aria-hidden="true"></span>Change Password
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="logout">
+                <span class="oi oi-account-logout" aria-hidden="true"></span> Sign Out
+            </NavLink>
+        </li>
+        @if (Installable)
+        {
+            <li class="nav-item px-3">
+                <a class="nav-link" @onclick="@(() => InstallClicked())">
+                    <span class="oi oi-account-logout" aria-hidden="true"></span> Install App
+                </a>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    static bool Installable = false;
+
+    [JSInvokable]
+    public static Task PWAInstallable()
+    {
+        Installable = true;
+        OnInstallable.Invoke();
+        return Task.CompletedTask;
+    }
+
+    string tenant = "";
+    static Action OnInstallable;
+
+    protected async override Task OnInitializedAsync()
+    {
+        tenant = NavigationManager.BaseUri;
+        SubscriptionService.Changed += SubscriptionChanged;
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (state.User.Identity.IsAuthenticated)
+            await SubscriptionService.GetActivePlan();
+
+        OnInstallable = () =>
+        {
+            ((ApiAuthenticationStateProvider)Provider).MarkAsInstallable(true);
+            InvokeAsync(StateHasChanged);
+        };
+    }
+
+    private void SubscriptionChanged(object sender, EventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    ValueTask InstallClicked()
+    {
+        Installable = false;
+        return JSRuntime.InvokeVoidAsync("BlazorPWA.installPWA");
+    }
+
+}

@@ -1,0 +1,112 @@
+﻿<div class="box">
+    <div class="box-body">
+        <div id="@Id" class="br-wrapper @WidgetCSS">
+            <div class="br-widget">
+                <CascadingValue Value="this">
+                    @ChildContent
+                </CascadingValue>
+                @if (DisplayType == RatingControlDisplayType.TextRating)
+                {
+                    <div class="br-current-rating" style="color: @ColorHex;">@GetDisplayText</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private string WidgetCSS
+    {
+        get
+        {
+            return (DisplayType == RatingControlDisplayType.Blocks ? "br-theme-bars-square" :
+                (DisplayType == RatingControlDisplayType.HorizontalBar ? "br-theme-bars-1to10" :
+                (DisplayType == RatingControlDisplayType.Pill ? "br-theme-bars-pill" :
+                "br-theme-bars-movie")));
+        }
+    }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string ColorHex { get; set; } = "#50E3C2";
+
+    [Parameter]
+    public RatingControlDisplayType DisplayType { get; set; } = RatingControlDisplayType.Blocks;
+
+    [Parameter]
+    public EventCallback<int?> ValueChanged { get; set; }
+
+    private int? _value = null;
+    [Parameter]
+    public int? Value
+    {
+        get
+        {
+            return _value;
+        }
+        set
+        {
+            if (_value == value)
+                return;
+            _value = value;
+            ValueChanged.InvokeAsync(value);
+        }
+    }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private List<VezaVIRatingValue> Values = new List<VezaVIRatingValue>();
+
+    public void AddValue(VezaVIRatingValue value)
+    {
+        Values.Add(value);
+        StateHasChanged();
+    }
+
+    public void RemoveValue(VezaVIRatingValue value)
+    {
+        Values.Remove(value);
+        StateHasChanged();
+    }
+
+    internal int? HoverValue { get; set; } = null;
+
+    public void SetHover(int? value)
+    {
+        HoverValue = value;
+        StateHasChanged();
+    }
+
+    public void SetValue(int? value)
+    {
+        Value = value;
+        StateHasChanged();
+    }
+
+    private string GetDisplayText
+    {
+        get
+        {
+            if (HoverValue != null)
+            {
+                foreach (var value in Values)
+                {
+
+                    if (value.Value == HoverValue)
+                        return value.TextValue;
+                }
+            }
+            foreach (var value in Values)
+            {
+                if (value.Value == Value)
+                    return value.TextValue;
+            }
+            return "";
+        }
+    }
+
+}

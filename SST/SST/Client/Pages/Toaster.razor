@@ -1,0 +1,81 @@
+﻿@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager NavigationManager
+
+@if (NextStep != null)
+{
+    <div class="show" id="snackbar">
+        <h3>@NextStep.StepName</h3>
+        <p>@NextStep.Description</p>
+        @if (NextStep.AllowSkip)
+        {
+            <button @onclick="Skip">Skip</button>
+        }
+        <button @onclick="Configure" >@NextStep.ButtonText</button>
+    </div>
+}
+
+@code {
+
+    IntroStep NextStep;
+
+    private async void Configure()
+    {
+        await Next(false);
+    }
+
+    private async void Skip()
+    {
+        await Next(true);
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var tokenResult = await LocalStorage.GetItemAsync<string>("authToken");
+        if (!string.IsNullOrEmpty(tokenResult))
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/GetNextToaster");
+            request.Headers.Authorization = new AuthenticationHeaderValue("bearer", tokenResult);
+            var response = await HttpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                var resultstr = await response.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(resultstr))
+                {
+                    var nextStep = JsonSerializer.Deserialize<IntroStep>(resultstr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    NextStep = nextStep;
+                }
+                else
+                    NextStep = null;
+            }
+            else
+                NextStep = null;
+        }
+        else
+            NextStep = null;
+    }
+
+    //api/GetNextToaster
+    private async Task Next(bool skipAction)
+    {
+        var tokenResult = await LocalStorage.GetItemAsync<string>("authToken");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"api/CompleteToaster/{NextStep.ID}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("bearer", tokenResult);
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            string url = NextStep.Url;
+            var resultstr = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrEmpty(resultstr))
+            {
+                var nextStep = JsonSerializer.Deserialize<IntroStep>(resultstr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                NextStep = nextStep;
+            }
+            else
+                NextStep = null;
+            if (!string.IsNullOrEmpty(url) && !skipAction)
+                NavigationManager.NavigateTo(url);
+            StateHasChanged();
+        }
+    }
+}

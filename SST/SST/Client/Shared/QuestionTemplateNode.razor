@@ -1,0 +1,112 @@
+﻿@inject IVezaDataService<ContractQuestionTemplate> ContractQuestionTemplateService
+
+<div class="vi-multi-item-textbox">
+    @foreach (var item in SelectedItems)
+    {
+        <span class="vi-multi-item">@item.DisplayText<span class="vi-multi-item-cancel" @onclick="@(() => TryRemove(item))">x</span></span>
+    }
+    <input type="text" class="vi-multi-item-input" placeholder="@NullText" oninput="this.blur(); this.focus();"
+           @bind="@SelectedText"
+           @onblur="@(ev => TryAutoComplete(ev))"
+           @onfocus="@(ev => TryAutoComplete(ev))">
+    <div class="dropdown-menu dropdown-menu-right scrollable-menu @(_isOpen ? "show" : "")" style="width: 100%;">
+        <span class="vi-question-tree-item-cancel" @onclick="@(() => _isOpen = false)">X</span>
+        <h6 class="dropdown-header">@DisplayItems.Count item(s)</h6>
+        @foreach (var item in DisplayItems)
+        {
+            <a class="dropdown-item"
+               @onclick="@(() => TrySelect(item))" >
+                @((MarkupString)item.DisplayText)
+            </a>
+        }
+    </div>
+</div>
+
+@code {
+
+    private Guid _questionID = Guid.Empty;
+    [Parameter]
+    public Guid QuestionID {
+        get
+        {
+            return _questionID;
+        }
+        set {
+            _questionID = value;
+            OnRefresh?.Invoke();
+        }
+    }
+
+    private delegate Task Refresh();
+    private event Refresh OnRefresh;
+
+    [Parameter]
+    public Guid ContractTransactionID { get; set; }
+    [Parameter]
+    public string NullText { get; set; }
+    private bool _isOpen = false;
+    public string SelectedText { get; set; } = string.Empty;
+
+    public List<VezaMultiItem> DisplayItems { get; set; } = new List<VezaMultiItem>();
+    public List<ContractQuestionTemplate> selectedItems { get; set; } = new List<ContractQuestionTemplate>();
+
+    [CascadingParameter]
+    public QuestionNodeTreeBuilder TreeBuilder { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        OnRefresh += RefreshQuestion;
+        await RefreshQuestion();
+    }
+
+    private async Task RefreshQuestion()
+    {
+        var questionDataFields = await ContractQuestionTemplateService.GetAllAsync("ID", new List<VezaVIGridFilter>()
+        {
+            new VezaVIGridFilter() { Field = "QuestionID", Value = QuestionID.ToString(), Equals = true }
+        });
+        selectedItems = questionDataFields.Items;
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    public List<VezaMultiItem> SelectedItems {
+        get {
+            return selectedItems.OrderBy(x => x.SequenceNumber).Select(x => new VezaMultiItem() { Key = x.ID, DisplayText = TreeBuilder.GetAllTemplates().FirstOrDefault(y => y.ID == x.ContractTransactionTemplateID)?.Name }).ToList();
+        }
+    }
+
+    public async void TrySelect(VezaMultiItem item)
+    {
+        ContractQuestionTemplate field = new ContractQuestionTemplate()
+        {
+            QuestionID = QuestionID,
+            ContractTransactionTemplateID = item.Key
+        };
+        /*SAve*/
+        var result = await ContractQuestionTemplateService.AddAsync(field);
+        if (result.Successful)
+        {
+            selectedItems.Add(field);
+            SelectedText = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    public async void TryRemove(VezaMultiItem item)
+    {
+        /*Delete*/
+        var result = await ContractQuestionTemplateService.DeleteAsync(item.Key);
+        if (result.Successful)
+        {
+            var removedItem = selectedItems.FirstOrDefault(x => x.ID == item.Key);
+            selectedItems.Remove(removedItem);
+            StateHasChanged();
+        }
+    }
+
+    private void TryAutoComplete(FocusEventArgs ev)
+    {
+        _isOpen = true;
+        DisplayItems = TreeBuilder.GetAllTemplates().Select(x => new VezaMultiItem() { Key = x.ID, DisplayText = x.Name }).ToList().Where(x => x.DisplayText.Contains(SelectedText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+    }
+}

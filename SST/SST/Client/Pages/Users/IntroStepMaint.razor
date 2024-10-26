@@ -1,0 +1,35 @@
+﻿@page "/introsteps"
+@attribute [Authorize(Roles = RoleConstants.SystemAdministrator)]
+@namespace SST.Client
+
+<div class="card">
+    <div class="card-body">
+        <MaintenanceGrid TItem="IntroStep" Description="Intro Step" DefaultPageSize="10">
+            <Columns>
+                <MaintenanceGridColumn Caption="Step Name" PropertyName="StepName" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Description" PropertyName="Description" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Button Text" PropertyName="ButtonText" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Allow Skip" PropertyName="AllowSkip" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Sequence" PropertyName="Sequence" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Url" PropertyName="Url" AllowSort="true" />
+            </Columns>
+            <ModalContent Context="item">
+                <div class="form-group">
+                    <label for="StepName">Paul Se Label</label>
+                    <InputText Id="StepName" Class="form-control" @bind-Value="item.StepName" />
+                    <ValidationMessage For="@(() => item.StepName)" />
+                </div>
+                <div class="form-group">
+                    <label for="Description">Description</label>
+                    <InputText Id="Description" Class="form-control" @bind-Value="item.Description" />
+                    <ValidationMessage For="@(() => item.Description)" />
+                </div>
+            </ModalContent>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code
+{
+
+}

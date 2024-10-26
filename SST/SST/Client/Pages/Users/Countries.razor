@@ -1,0 +1,38 @@
+﻿@page "/countries"
+@attribute [Authorize(Roles = RoleConstants.SystemAdministrator)]
+@namespace SST.Client
+
+<div class="card">
+    <div class="card-body">
+        <MaintenanceGrid TItem="Country" Description="Country" DefaultPageSize="10" GridFilter="filter">
+            <Columns>
+                <MaintenanceGridColumn Caption="Name" PropertyName="Name" AllowSort="true" />
+                <MaintenanceGridColumn Caption="ISO2" PropertyName="ISO2" AllowSort="true" />
+                <MaintenanceGridColumn Caption="Dailing Code" PropertyName="DailingCode" AllowSort="true" />
+            </Columns>
+            <ModalContent Context="item">
+                <div class="form-group">
+                    <label for="Name">Platform Name</label>
+                    <InputText Id="Name" Class="form-control" @bind-Value="item.Name" />
+                    <ValidationMessage For="@(() => item.Name)" />
+                </div>
+                <div class="form-group">
+                    <label for="DailingCode">Dailing Code</label>
+                    <InputText Id="DailingCode" Class="form-control" @bind-Value="item.DailingCode" />
+                    <ValidationMessage For="@(() => item.DailingCode)" />
+                </div>
+                <div class="form-group">
+                    <label for="ISO2">ISO 2</label>
+                    <InputText Id="ISO2" Class="form-control" @bind-Value="item.ISO2" />
+                    <ValidationMessage For="@(() => item.ISO2)" />
+                </div>
+            </ModalContent>
+        </MaintenanceGrid>
+    </div>
+</div>
+
+@code 
+{ 
+
+    List<VezaVIGridFilter> filter = new List<VezaVIGridFilter>();
+}

@@ -1,0 +1,38 @@
+﻿<ul class="@TreeCSS()">
+    @if (PathNodes != null)
+    {
+        foreach (var node in PathNodes)
+        {
+            <VezaPathControlNode Node="node" />
+        }
+    }
+</ul>
+
+@code {
+
+    public enum TreeType
+    {
+        FamilyTree,
+        Dendogram,
+        DecisionTree
+    }
+
+    [Parameter]
+    public TreeType DisplayType { get; set; }
+    [Parameter]
+    public List<VezaPathNode> PathNodes { get; set; }
+
+    public string TreeCSS()
+    {
+        switch (DisplayType)
+        {
+            case TreeType.DecisionTree:
+                return "vi-flow-decision-tree";
+            case TreeType.Dendogram:
+                return "vi-flow-dendrogram";
+            default:
+            case TreeType.FamilyTree:
+                return "vi-flow-family-tree";
+        }
+    }
+}

@@ -1,0 +1,133 @@
+﻿@namespace VezaVI.Light.Components
+
+    <CascadingValue Value="this">
+        <div class="vi-document-builder-headertoolbar">
+            <DocumentBuilderToolbar>
+                <DocumentBuilderToolbarItem Title="Align text left" Key="@ConfigType.Alignment" Value="align-left" IconCss="oi-align-left" />
+                <DocumentBuilderToolbarItem Title="Align text center" Key="@ConfigType.Alignment" Value="align-center" IconCss="oi-align-center" />
+                <DocumentBuilderToolbarItem Title="Align text right" Key="@ConfigType.Alignment" Value="align-right" IconCss="oi-align-right" />
+                <DocumentBuilderToolbarItem Title="Align text justify" Key="@ConfigType.Alignment" Value="align-justify" IconCss="oi-justify-center" />
+                <DocumentBuilderToolbarItem Title="Bold text" Key="@ConfigType.Bold" Value="bold" IconCss="oi-bold" />
+                <DocumentBuilderToolbarItem Title="Italic text" Key="@ConfigType.Italic" Value="italic" IconCss="oi-italic" />
+                <DocumentBuilderToolbarItem Title="Underline text" Key="@ConfigType.Underline" Value="underline" IconCss="oi-underline" />
+                <DocumentBuilderToolbarItem Title="Increase Indent" Key="@ConfigType.Indent" Value="increase" IconCss="oi-collapse-right" />
+                <DocumentBuilderToolbarItem Title="Decrease Indent" Key="@ConfigType.Indent" Value="decrease" IconCss="oi-collapse-left" />
+                <DocumentBuilderToolbarItem Title="Auto Number Element" Key="@ConfigType.AutoNumber" Value="AutoNumber" IconCss="oi-project" />
+                <DocumentBuilderToolbarItem Title="Restart Auto Numbering" Key="@ConfigType.RestartNumbering" Value="RestartNumbering" IconCss="oi-media-play" />
+                <DocumentBuilderToolbarItem Title="Hyperlink" Key="@ConfigType.Hyperlink" Value="Hyperlink" IconCss="oi-link-intact" />
+            </DocumentBuilderToolbar>
+        </div>
+        <div class="vi-document-builder-container">
+            <div class="vi-document-builder-canvas">
+                <DocumentBuilderElementList AllowedType="DocumentBuilderElementListType.Canvas" />
+            </div>
+            <div class="vi-document-builder-toolbar">
+                <DocumentBuilderElementList AllowedType="DocumentBuilderElementListType.Toolbar" />
+            </div>
+        </div>
+    </CascadingValue>
+
+
+@code { 
+
+    public IDragableElement SelectedElement { get; private set; }
+    public void SetSelectedElement(IDragableElement element)
+    {
+        SelectedElement = element;
+        StateHasChanged();
+    }
+
+    public void SetSelectedElementConfig(ConfigType type, string value)
+    {
+        SelectedElement.SetConfigValue(type, value);
+        if ((type == ConfigType.AutoNumber) || (type == ConfigType.Indent) || (type == ConfigType.RestartNumbering))
+            AutoNumber();
+        StateHasChanged();
+    }
+
+    internal IDragableElement Payload { get; set; }
+
+    private IList<IDragableElement> _elements = new List<IDragableElement>();
+    [Parameter]
+    public IList<IDragableElement> Elements
+    {
+        get
+        {
+            return _elements;
+        }
+        set
+        {
+            _elements = value;
+            if (_elements != null)
+            {
+                foreach (var element in _elements)
+                {
+                    (element as System.ComponentModel.INotifyPropertyChanged).PropertyChanged += PropertyChanged;
+                }
+            }
+        }
+    }
+
+    private async void PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (OnElementChanged.HasDelegate)
+            await OnElementChanged.InvokeAsync(new VezaDragableElementSaveEventArgs((IDragableElement)sender, ((sender as IDragableElement).ElementID == null ? ElementAction.Add : ElementAction.Update)));
+    }
+
+    [Parameter]
+    public IList<IDragableElement> ToolbarElements { get; set; } = new List<IDragableElement>();
+    [Parameter]
+    public EventCallback<VezaDragableElementSaveEventArgs> OnElementChanged { get; set; }
+
+    public IList<IDragableElement> GetElements(DocumentBuilderElementListType type)
+    {
+        if (type == DocumentBuilderElementListType.Toolbar)
+            return ToolbarElements;
+        else
+            return Elements;
+    }
+
+    public async Task<bool> DeleteElement(IDragableElement element)
+    {
+        VezaDragableElementSaveEventArgs args = new VezaDragableElementSaveEventArgs(element, ElementAction.Delete);
+        if (OnElementChanged.HasDelegate)
+            await OnElementChanged.InvokeAsync(args);
+        return (args.Succeeded);
+    }
+
+    public async Task<bool> UpdateElement(IDragableElement element, ElementAction action)
+    {
+        VezaDragableElementSaveEventArgs args = new VezaDragableElementSaveEventArgs(element, action);
+        if (OnElementChanged.HasDelegate)
+            await OnElementChanged.InvokeAsync(args);
+        return (args.Succeeded);
+    }
+
+    public async Task ChangeState()
+    {
+        await InvokeAsync(() => StateHasChanged());
+    }
+
+    public event EventHandler OnIndexReset;
+
+    public void ResetIndex()
+    {
+        OnIndexReset.Invoke(this, EventArgs.Empty);
+    }
+
+    int[] counters;
+
+    private void AutoNumber()
+    {
+        counters = new int[] { 1,1,1,1,1,1 };
+        foreach (var element in Elements)
+        {
+            if (element.AutoNumber())
+            {
+                int indent = element.GetLevel();
+                element.Number = counters[indent].ToString();
+                counters[indent]++;
+            }
+        }
+    }
+}
